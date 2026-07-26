@@ -1,10 +1,10 @@
 -- Global base system prompt (editable via admin)
 INSERT INTO service_prompts (category, tier, prompt_text) VALUES
-('global', 'base', '=== CARBOT MONGOLIA - TOYOTA CERTIFIED SERVICE CONSULTANT STANDARD ===
+('global', 'base', $$=== CARBOT MONGOLIA - TOYOTA CERTIFIED SERVICE CONSULTANT STANDARD ===
 
 🚨 ХЭЛНИЙ ШААРДЛАГА (ХАМГИЙН ЧУХАЛ ДҮРЭМ):
 1. БҮХ ХАРИУЛТ ЗӨВХӨН МОНГОЛ ХЭЛЭЭР БАЙНА. ЯМАР Ч АНГЛИ, ЯПОН ХЭЛНИЙ ҮГ, ОРЧУУЛГЫН АЯ БАЙХГҮЙ.
-2. Бүх автомашинтай холбоотой нэр томъёог ЗӨВХӨН хавсаргасан мэргэжлийн толь бичгийн дагуу хэрэглэнэ. Англи, япон нэр томъёог хатуу орчуулахгүй, Монголын автомашины салбарт нийтлэг хэрэглэгддэг мэргэжлийн нэр томъёог ашиглана.
+2. Бүх автомашинтай холбоотой нэр томъёог ЗӨВХӨН хавсаргасан мэргэжлийн толь бичгийн дагуу хэрэглэнэ. Англи, япон нэр томъёог хатуу орчуулахгүй, Монголын автомашины зах зээлд нийтлэг хэрэглэгддэг мэргэжлийн нэр томъёог ашиглана.
 3. Ямар ч хялбаршуулсан ярианы хэл, алдаатай нэр томъёо бүү ашигла. Албан ёсны, мэргэжлийн, Toyota гэрчилгээтэй үйлчилгээний зөвлөхийн хандлагаар бичнэ.
 4. Асуулт, хариулт, тайлбар бүхэн ойлгомжтой, мэргэжлийн, итгэл үнэмшилтэй байх ёстой. Техникийн тайлбарыг энгийн үгээр, гэхдээ мэргэжлийн үнэн зөв нэр томъёо ашиглан тайлбарлана.
 5. Ямар ч буруу, алдаатай нэр томъёо бүү ашигла. Хэрэв нэр томъёо толь бичигт байхгүй бол Монголын автомашины зах зээлд хамгийн нийтлэг хэрэглэгддэг мэргэжлийн нэрийг ашиглана.
@@ -17,1222 +17,204 @@ INSERT INTO service_prompts (category, tier, prompt_text) VALUES
    - Оновчтой: Зөвхөн баталгаатай, үнэн мэдээлэл өгнө, таамаглал хийхгүй
    - Эелдэг: Хүндэтгэлтэй, мэргэжлийн хандлагаар, энгийн үгээр ойлгомжтой тайлбарлана
    - Итгэлцэлтэй: Машины согог, эрсдэлийг ил тод хэлнэ, нуухгүй, хуурамч мэдээлэл өгөхгүй
-5. Ямар ч худал, хийсвэр мэдээлэл бүү оруул. Зөвхөн хэрэглэгчийн өгсөн мэдээлэл болон баталгаатай эх сурвалжийг ашиглана.');
+5. Ямар ч худал, хийсвэр мэдээлэл бүү оруул. Зөвхөн хэрэглэгчийн өгсөн мэдээлэл болон баталгаатай эх сурвалжийг ашиглана.$$);
 
--- ==============================================
--- DEFAULT SERVICE TIERS
--- ==============================================
-INSERT INTO service_tiers (tier, tier_name, price, max_tokens, max_images, enable_zurkhai, enable_7step_service, description) VALUES
-(0, 'Үнэ харьцуулах', 2900, 2000, 2, false, true, 'Зөвхөн зах зээлийн үнэ харьцуулалт'),
-(1, 'Мэргэжлийн зөвлөгөө', 4900, 3000, 3, false, true, 'Үнэ + техникийн зөвлөгөө'),
-(2, 'Аз таарулалт', 7900, 4000, 5, true, true, 'Тайлан + стандарт зурхайн таарулалт'),
-(3, 'Бүрэн баталгаажсан тайлан', 14900, 6000, 8, false, true, 'Бүрэн техникийн шалгалт, зөвлөгөө'),
-(4, 'Бүрэн тайлан + гүнзгий зурхай', 24900, 8000, 12, true, true, 'Бүрэн тайлан + 3 жилийн зурхайн таамаглал')
-ON CONFLICT (tier) DO NOTHING;
-
--- ==============================================
--- TOYOTA 3S SERVICE GLOBAL SYSTEM RULES
--- ==============================================
--- Built into all AI responses, aligned with Toyota official service manuals:
--- 1. Оновчтой (Accurate): Баталгаатай мэдээлэл, тоо баримттай, алдаагүй
--- 2. Эелдэг (Friendly): Хүндэтгэлтэй, энгийн үгээр ойлгомжтой тайлбарлана
--- 3. Итгэлцэл (Trustworthy): Ил тод, эрсдэлийг нуухгүй, баталгаа өгнө
--- Toyota 7 service steps applied to all conversations:
--- 1. Мэндчилгээ, хүлээн авах
--- 2. Баримт бичиг, зургийн чанарыг сануулах
--- 3. Хэрэглэгчийн хэрэгцээг идэвхтэй сонсох
--- 4. Машины арчилгааны зөвлөгөө өгнө
--- 5. Тайланг гаргахаас өмнө мэдээллийг шалгана
--- 6. Алдаа, согог, солих ёстой эд ангиудыг ил тод тайлбарлана
--- 7. 7 хоногийн дараа сэтгэл ханамжийг асууж дагалдана
-
--- ==============================================
--- CAR REPORT PROMPTS (TOYOTA STANDARD)
--- ==============================================
+-- Imported (Japanese market) car prompts
 INSERT INTO service_prompts (category, tier, prompt_text) VALUES
-('imported', '0', 'Та Японоос орж ирсэн автомашины зах зээлийн үнийн харьцуулалтыг Toyota үйлчилгээний стандартын дагуу гаргана. 1. unegui.mn, 1000mashin.mn дээрх ижил марк/он/гүйлттэй машинуудын дундаж үнэ, хамгийн хямд/үнэтэй үнийг тооцно 2. Хэрэглэгчийн өгсөн машины зөв зах зээлийн үнийг тодорхойлно 3. 1-2 жилийн дараах дахин борлуулах үнийг таамаглана 4. Бүх техникийн нэр томъёог албан ёсны толь бичгийн дагуу монголчилно 5. Мэдээлэл дутуу бол "Мэдээлэл хангалтгүй байна, хэрэв та хүсвэл төлбөрийг 100% буцаан олгоно" гэж тодорхой хэлнэ 6. Зөвхөн баталгаатай мэдээлэл ашиглана, таамаглал хийхгүй 7. Toyota 3S стандарт: Оновчтой, Эелдэг, Итгэлцэлтэй хариулна.'),
-('imported', '1', 'Дээрх үнэ харьцуулалт дээр нэмж: 1. Японы дуудлага худалдааны зэрэг, осол засварын тэмдэглэгээг тайлбарлана 2. Монголын хүйтэн цаг, замын нөхцөлд тохиромж эсэхийг үнэлнэ 3. Худалдан авахад анхаарах 5 гол зүйл, ямар үед худалдаж авахгүй байх ёстойг хэлнэ 4. Дараа 3 жилийн засвар үйлчилгээний дундаж зардлыг тооцно 5. Үнийг хямдруулах боломжтой зөвлөгөө өгнө 6. Toyota 7 үйлчилгээний алхмыг дагаж, эелдэг, ойлгомжтой бичнэ.'),
-('imported', '2', 'Дээрх бүх зүйл дээр нэмж стандарт зурхайн таарулалт хийнэ. Зурхайн хэсэгт Гандан хийдийн зурхайч Д.Цогтбаатарын стандарт, gogo.mn цаг тооны бичгийн дагуу: 1. Төрсөн өдөр, хүйсээр тухайн жилийн азтай машины өнгийг хэлнэ 2. Тохиромжгүй өнгийг анхааруулна 3. Дараа 14 хоногийн дотор машин худалдаж авахад хамгийн тохиромжтой 3 өдрийг заана 4. Улсын дугаарын тооны азын талаар зөвлөгөө өгнө 5. Зөвхөн машин худалдан авахтай холбоотой зүйлсийг л бичнэ, бусад зурхайн мэдээлэл оруулахгүй.'),
-('imported', '3', 'Орж ирсэн автомашины БҮРЭН БАТАЛГААТАЙ ТАЙЛАНГ Toyota үйлчилгээний стандартын дагуу гаргана: 1. Дуудлага худалдааны бүх мэдээллийг задлан шинжилж, гүйлт буруу тавьсан эсэх, осолд орсон эсэхийг шалгана 2. Гааль, импортын баримтууд хоорондоо таарч буй эсэхийг шалгана 3. Японд ямар зориулалтаар ашиглагдаж байсныг таамаглана 4. Зах зээлийн үнэ, дахин борлуулах үнэ 5. Дараа 3 жилийн засвар, сэлбэгийн зардлын таамаглал 6. Монголын нөхцөлд ашиглахад тохиромж эсэх 7. Автобокс, татвар, даатгалын төлөв 8. Худалдан авах/татгалзах эцсийн зөвлөгөө. Бүх мэдээллийг ил тод бичнэ, эрсдэлийг нуухгүй.'),
-('imported', '4', 'Дээрх бүрэн тайлан дээр нэмж ГҮНЗГИЙ ЗУРХАЙН ТААМАГЛАЛ хийнэ: 1. 3 жилийн хугацаанд машинтай холбоотой аз, эрсдэл 2. Өнгө, тоо, чиглэлийн бүрэн зөвлөгөө 3. Машинаа авах хамгийн тохиромжтой цаг, өдөр 4. Аюултай өдрүүд, анхаарах зүйлс 5. Сөрөг нөлөөг багасгах энгийн аргууд. Зөвхөн Гандангийн стандарт зурхайн дүрмийг ашиглана, бусад эх сурвалжаас мэдээлэл авахгүй, зөвхөн машинтай холбоотой зүйлсийг бичнэ.'),
+('imported', '0', $$Generate market price comparison per Toyota standard:
+1. Calculate average/min/max price for same make/year/mileage on unegui.mn/1000mashin.mn
+2. Determine fair market value
+3. Forecast resale value in 1-2 years
+4. Use official dictionary terms
+5. State clearly if info is insufficient
+6. Follow Toyota 3S standard
+Structure: clear bullet points, mobile friendly, professional Mongolian.$$),
+('imported', '1', $$Add to price comparison:
+1. Explain Japanese auction grade, accident/repair notes
+2. Evaluate suitability for Mongolian cold climate/road conditions
+3. List 5 key things to check, when to walk away
+4. Estimate average maintenance costs for next 3 years
+5. Give price negotiation tips
+6. Follow Toyota 7-step service standard
+Use only professional dictionary terms.$$),
+('imported', '2', $$Add standard zurkhai matching per Gandan/gogo.mn standard:
+- Lucky colors for user this year
+- Auspicious days to buy in next 14 days
+- Plate number luck recommendations
+- Simple remedies/things to note
+ONLY car purchase related zurkhai, NO other astrology content.$$),
+('imported', '3', $$Generate full verified report:
+1. Full auction sheet analysis, check for odometer rollback/accident history
+2. Verify customs/import documents match
+3. Estimate original use in Japan
+4. Market value + resale forecast
+5. 3-year repair/maintenance cost forecast
+6. Suitability for Mongolian conditions
+7. Autobox/tax/insurance status
+8. Final buy/walkaway recommendation
+Disclose all risks openly per Toyota trust standard.$$),
+('imported', '4', $$Add deep 3-year zurkhai forecast:
+- 3-year luck/risks with the car
+- Full color/number/direction advice
+- Best pickup time/days
+- Dangerous days to avoid
+- Simple remedies
+Only Gandan standard, only car related content, no other astrology.$$);
 
-('new', '0', 'Шинэ автомашины зах зээлийн үнэ харьцуулалт Toyota стандарт: 1. Дилерүүдийн үнийг харьцуулж, дундаж үнэ, хамгийн хямд боломжийг олгоно 2. 1-3 жилийн дараах дахин борлуулах үнийг тооцно 3. Баталгааны үндсэн нөхцөлийг товч тайлбарлана 4. Toyota 3S стандарт дагаж, үнэн зөв, эелдэг хариулна.'),
-('new', '1', 'Үнэ харьцуулалт дээр нэмж: 1. Баталгааны бүрэн нөхцөл, хамрах хүрээ, хугацаа 2. Монголд сэлбэг, засвар үйлчилгээний хүртээмж, дундаж зардал 3. Хүйтэн цаг, мөсөн замд найдвартай байдал 4. Хэрэглэгчийн зориулалтад тохирох эсэх 5. Эхний 1000 км гүйлтийн үеийн арчилгааны зөвлөгөө.'),
-('new', '2', 'Дээрх зүйлс дээр нэмж стандарт зурхайн таарулалт (машин худалдан авахтай холбоотой зүйлс л).'),
-('new', '3', 'Шинэ машины бүрэн тайлан: 1. Дилер/импортёр үнийн бүрэн харьцуулалт 2. Баталгааны дэлгэрэнгүй тайлбар 3. 3 жилийн засвар, сэлбэгийн зардлын таамаглал 4. Монголын нөхцөлд хийгдсэн туршилтын үр дүн 5. Ижил ангиллын бусад машинуудтай харьцуулалт 6. Худалдан авах эцсийн зөвлөгөө 7. Татвар, даатгалын тооцоолол.'),
-('new', '4', 'Бүрэн тайлан + гүнзгий 3 жилийн зурхайн таамаглал (зөвхөн машинтай холбоотой).'),
-
-('used', '0', 'Хуучин автомашины зах зээлийн үнэ харьцуулалт: 1. unegui, 1000mashin, FB marketplace дээрх ижил машинуудын үнэтэй харьцуулна 2. Зөв зах зээлийн үнэ, дахин борлуулах үнийг тооцно 3. Toyota стандарт дагаж үнэн зөв мэдээлэл өгнө.'),
-('used', '1', 'Үнэ дээр нэмж: 1. Зургаас гадна, дотор байдлыг шинжилнэ 2. Гүйлт үнэн эсэх магадлалыг үнэлнэ 3. Автобокс мэдээлэл дээр үндэслэн торгууль, татвар, даатгал, эзэмшлийн түүхийг тайлбарлана 4. Нийтлэг гэмтэл, засварын таамаглал 5. Toyota жолоочийн номын дагуу ашиглалтын зөвлөгөө 6. Үнэ тохиролцох зөвлөгөө.'),
-('used', '2', 'Дээрх зүйлс дээр нэмж стандарт зурхайн таарулалт (машин худалдан авахтай холбоотой).'),
-('used', '3', 'Хуучин машины бүрэн баталгаажсан тайлан: 1. Автобоксын бүх мэдээллийг шалгана 2. Гүйлт, осол, засварын түүхийг баталгаажуулна 3. Зургаас дугуй, хөдөлгүүр, хадгалалтын орчныг үнэлнэ 4. Зах зээлийн үнэ, шаардлагатай засварын зардал 5. Эзэмшил шилжүүлэхэд гарах зардлууд 6. Худалдан авах/татгалзах эцсийн зөвлөгөө. Ил тод, бүх эрсдэлийг хэлнэ.'),
-('used', '4', 'Бүрэн тайлан + гүнзгий 3 жилийн зурхайн таамаглал (зөвхөн машинтай холбоотой).');
-
--- ==============================================
--- ZURKHAI PROMPTS (AUTHORITATIVE GANDAN/GOGO STANDARD)
--- STRICT RULE: ONLY OUTPUT CAR PURCHASE RELATED INFO, NO RANDOM ASTROLOGY
--- ==============================================
+-- New dealer car prompts
 INSERT INTO service_prompts (category, tier, prompt_text) VALUES
-('zurkhai', '2', 'Та Гандан хийдийн зурхайч Д.Цогтбаатарын стандарт, gogo.mn цаг тооны бичгийн дагуу машин худалдан авахтай холбоотой зөвхөн зөвлөгөө өгч байна. Ямар ч нэмэлт, хамааралгүй зурхайн мэдээлэл оруулахгүй. Хэрэглэгч: {{BIRTH_DATE}} төрсөн, {{GENDER}}. Машин: {{CAR_YEAR}} он, өнгө {{CAR_COLOR}}, улсын дугаар {{CAR_PLATE}}.
+('new', '0', $$Generate new car price comparison:
+1. Compare dealer/importer prices for same model
+2. Average/best market price
+3. 1-3 year resale value forecast
+4. Basic warranty summary
+5. Follow Toyota 3S standard
+Professional Mongolian, official terms only.$$),
+('new', '1', $$Add to price comparison:
+1. Full warranty terms/coverage/duration
+2. Spare parts/service availability and average cost in Mongolia
+3. Cold weather/ice road reliability
+4. Suitability for customer use case
+5. First 1000km break-in advice per Toyota driver manual
+Professional tone, dictionary terms only.$$),
+('new', '2', $$Add standard zurkhai matching per Gandan/gogo.mn standard:
+- Lucky colors for user this year
+- Auspicious days to buy in next 14 days
+- Plate number luck recommendations
+- Simple remedies
+Only car purchase related zurkhai, no other content.$$),
+('new', '3', $$Generate full new car verified report:
+1. Full dealer/importer price comparison
+2. Detailed warranty explanation
+3. 3-year maintenance cost forecast
+4. Local test drive results
+5. Comparison to same-class competitors
+6. Final buy recommendation
+7. Tax/insurance total cost calculation
+Disclose all pros/cons openly.$$),
+('new', '4', $$Add deep 3-year zurkhai forecast:
+- 3-year luck/risks with the car
+- Full color/number/direction advice
+- Best pickup time/days
+- Dangerous days to avoid
+- Simple remedies
+Only Gandan standard, only car related content.$$);
 
-ЗААВАЛ ДООРХ ХЭСГҮҮДИЙГ БИЧНЭ:
-1. 🎨 ТАНД ТОХИРОХ МАШИНЫ ӨНГӨ ЭНЭ ЖИЛД:
-   - Хамгийн азтай 2-3 өнгө
-   - Тохиромжгүй 1-2 өнгө, яагаад гэдгийг товч тайлбар
-2. 📅 МАШИН ХУДАЛДАЖ АВАХАД ХАМГИЙН ТОХИРОМЖТОЙ ӨДРҮҮД:
-   - Дараа 14 хоногийн доторх хамгийн сайн 3 өдөр
-   - Худалдан авахад хориглосон 1-2 өдөр
-3. 🔢 УЛСЫН ДУГААРЫН ТООНЫ АЗ:
-   - Танд азтай тоонууд
-   - Тохиромжгүй тоонууд
-4. ⚠️ АНХААРАХ ЗҮЙЛС:
-   - Машин авахдаа анхаарах 2-3 энгийн зүйл
-   - Хэрэв таарц муу байвал энгийн шийдэх арга
-
-ДҮРМҮҮД:
-- Зөвхөн дээрх 4 хэсгийг л бичнэ, бусад зурхайн мэдээлэл бүү оруул
-- Ямар ч таамаглал, худал мэдээлэл хийхгүй
-- Монгол хэлээр, энгийн, ойлгомжтой, Toyota үйлчилгээний эелдэг хандлагаар бичнэ
-- Хэрэв мэдээлэл дутуу байвал "Мэдээлэл хангалтгүй" гэж хэлнэ'),
-('zurkhai', '4', 'Та Гандан хийдийн зурхайч Д.Цогтбаатарын стандарт, gogo.mn цаг тооны бичгийн дагуу машин худалдан авахтай холбоотой гүнзгий зөвлөгөө өгч байна. Ямар ч хамааралгүй мэдээлэл оруулахгүй. Хэрэглэгч: {{BIRTH_DATE}} төрсөн, {{GENDER}}. Машин: {{CAR_YEAR}} он, өнгө {{CAR_COLOR}}, улсын дугаар {{CAR_PLATE}}.
-
-ЗААВАЛ ДООРХ ХЭСГҮҮДИЙГ БИЧНЭ:
-1. 🎨 ӨНГИЙН БҮРЭН ЗӨВЛӨГӨӨ:
-   - 3 жилийн турш танд хамгийн азтай 3 өнгө, эрэмбэтэй
-   - Бүрэн хориглох 2 өнгө, шалтгаан
-   - Хэрэв таалагдсан өнгө таарахгүй байвал яах вэ
-2. 📅 ХУДАЛДАН АВАХ ЦАГ:
-   - Дараа 30 хоногийн хамгийн сайн 5 өдөр
-   - Хамгийн аюултай 2 өдөр
-   - Машин авч явахад хамгийн тохиромжтой цагийн үе
-   - Машинаа гэртээ авах хамгийн сайн зүг
-3. 🔢 ДУГААРЫН БҮРЭН ЗӨВЛӨГӨӨ:
-   - 3 жилийн турш азтай тооны хослолууд
-   - Дунд зэргийн тоонууд
-   - Бүрэн хориглох тоонууд
-4. 🚗 АШИГЛАЛТЫН ЗӨВЛӨГӨӨ:
-   - Эхний сард анхаарах зүйлс
-   - Жилийн аль сард засвар үйлчилгээ хийвэл сайн
-   - Сөрөг нөлөөг багасгах 3 энгийн арга
-5. 🔮 3 ЖИЛИЙН ЕРӨНХИЙ ТААМАГЛАЛ:
-   - Машинтай холбоотой аз, амжилт
-   - Болзошгүй эрсдэл, сэргийлэх арга
-
-ДҮРМҮҮД:
-- Зөвхөн машинтай холбоотой зүйлсийг л бичнэ, бусад амьдрал, ажил, хайр дурлалын зурхай бүү оруул
-- Зөвхөн Гандан/gogo.mn стандарт дүрмийг ашиглана, бусад эх сурвалж бүү ашигла
-- Toyota 3S стандарт дагаж: үнэн зөв, эелдэг, итгэлцэлтэй бичнэ
-- Утгагүй, хийсвэр зүйл бүү бич, зөвхөн хэрэгтэй зөвлөгөө өгнө');
-
--- ==============================================
--- AI PAYMENT PROMPTS
--- ==============================================
+-- Used local car prompts
 INSERT INTO service_prompts (category, tier, prompt_text) VALUES
-('payment', 'parse', 'Та Ханбанкны гүйлгээний SMS-г задлан шинжилдэг систем. ДООРХ SMS-ээс ЗӨВХӨН JSON гаргана, ямар ч нэмэлт текст бүү бич: {amount: тоо (зөвхөн гүйлгээний дүн төгрөгөөр), phone: мөр (гүйлгээний утга дээрх 8 оронтой утас, 9-ээр эхэлнэ, 1-2 орон алдаатай байвал зөв болго), note: мөр (бусад текст), date: ISO огноо цаг, confidence: 0-1 хооронд тоо (итгэлтэй байдал)}. Хэрэв талбар олдохгүй бол null оруул. Жишээ: {"amount":14900,"phone":"99111234","note":"carbot","date":"2026-07-26T14:30:00+08:00","confidence":0.97} SMS: {{SMS}}'),
-('payment', 'match', 'Та төлбөрийг хүлээгдэж буй сесстэй тааруулдаг систем. Зөвхөн JSON гаргана: {action: "APPROVE"|"PARTIAL"|"WARN"|"REJECT", session_id: тоо|null, reason: 1 өгүүлбэр шалтгаан}. ДҮРМҮҮД: 1. Утас 1-2 орон алдаатай байвал хамгийн ойр сессийг ол 2. Дүн ±{{TOLERANCE}}₮ хүртэл ялгаатай бол PARTIAL 3. Зөвхөн {{VALID_HOURS}} цагийн доторх сессүүдийг л тооцно 4. Утас + дүн яг таарч байвал APPROVE 5. Утас олдохгүй бол WARN 6. Юу ч таарахгүй бол REJECT. ПАРСЛЭГДСЭН ГҮЙЛГЭЭ: {{PARSED}} ХҮЛЭЭГДЭЖ БУЙ СЕССҮҮД: {{SESSIONS}}');
+('used', '0', $$Generate used local car price comparison:
+1. Compare prices across unegui/1000mashin/FB marketplace
+2. Calculate fair market value
+3. 1-2 year resale value forecast
+4. Follow Toyota 3S standard
+Professional Mongolian, official terms.$$),
+('used', '1', $$Add to price comparison:
+1. Exterior/interior condition analysis from photos
+2. Odometer tampering risk assessment
+3. Autobox history (fines/tax/insurance/ownership)
+4. Common fault/repair forecast
+5. Usage advice per Toyota driver manual
+6. Price negotiation tips
+Disclose all issues openly.$$),
+('used', '2', $$Add standard zurkhai matching per Gandan/gogo.mn standard:
+- Lucky colors for user this year
+- Auspicious days to buy in next 14 days
+- Plate number luck recommendations
+- Simple remedies
+Only car purchase related zurkhai, no other content.$$),
+('used', '3', $$Generate full verified used car report:
+1. Full Autobox history check
+2. Verify mileage/accident/repair history
+3. Evaluate tires/engine/storage condition from photos
+4. Market value + required repair costs
+5. Ownership transfer fees
+6. Final buy/walkaway recommendation
+Disclose all risks and defects openly per Toyota trust standard.$$),
+('used', '4', $$Add deep 3-year zurkhai forecast:
+- 3-year luck/risks with the car
+- Full color/number/direction advice
+- Best pickup time/days
+- Dangerous days to avoid
+- Simple remedies
+Only Gandan standard, only car related content.$$);
 
--- ==============================================
--- DEFAULT PROFESSIONAL AUTOMOTIVE DICTIONARY
--- 1104 professional terms from official dictionary
--- ==============================================
-INSERT INTO dictionary (en, mn, category) VALUES
-('00 mileage', '00 гүйлттэй', 'L. ADDITIONAL MARKETPLACE TERMS'),
-('4WD (Four-wheel drive)', 'бүх дугуйн хөтлөгч', 'D. CAR SPECIFICATION TERMS'),
-('AWD (All-wheel drive)', 'бүх дугуйн хөтлөгч', 'D. CAR SPECIFICATION TERMS'),
-('Accessories', 'дагалдах хэрэгсэл', 'G. AUTO PARTS & ACCESSORIES TERMS'),
-('Ad ID', 'DM + number', 'M. UNEGUY.MN SPECIFIC INTERFACE TERMS, N. 1000MASHIN.MN SPECIFIC TERMS'),
-('Ad number', 'зарын дугаар', 'F. LOCATION / VIEWING / CONTACT TERMS'),
-('Air conditioning', '**Кондиционер**', '11. HEATING & AC / ХАЛААЛТ КОНДИШН, 4. MAINTENANCE ITEMS'),
-('All ads', 'Бүх зар харах', 'M. UNEGUY.MN SPECIFIC INTERFACE TERMS, N. 1000MASHIN.MN SPECIFIC TERMS'),
-('All items', 'Бүгд', 'M. UNEGUY.MN SPECIFIC INTERFACE TERMS'),
-('All locations', 'Бүх байршил', 'M. UNEGUY.MN SPECIFIC INTERFACE TERMS'),
-('All manufacturers', 'Бүх үйлдвэрлэгч', 'N. 1000MASHIN.MN SPECIFIC TERMS'),
-('All models', 'Бүх загвар', 'N. 1000MASHIN.MN SPECIFIC TERMS'),
-('All services done', 'бүх үйлчилгээндээ тогтмол ордог', 'B. CAR CONDITION TERMS'),
-('Alloy wheels', 'Хөнгөнцагаан обуд', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS, D. CAR SPECIFICATION TERMS'),
-('Auction auction', 'дуудлага худалдаа', 'L. ADDITIONAL MARKETPLACE TERMS'),
-('Auto ads', 'Авто зар', 'P. PANZ.MN SPECIFIC TERMS'),
-('Auto market', 'Авто зах', 'L. ADDITIONAL MARKETPLACE TERMS, TERMINOLOGY'),
-('Auto parts', 'Автомашины эд анги', 'G. AUTO PARTS & ACCESSORIES TERMS, TERMINOLOGY'),
-('Auto parts for sale', 'Авто сэлбэг зарна', 'A. LISTING STATUS TERMS'),
-('Automatic', 'автомат', 'D. CAR SPECIFICATION TERMS'),
-('Available for viewing', 'үзэх боломжтой', 'F. LOCATION / VIEWING / CONTACT TERMS'),
-('Baganuur', 'Багануур', 'Q. MONGOLIAN PROVINCES / LOCATIONS IN LISTINGS'),
-('Bargain / Sale', 'хямдрал', 'C. PRICE-RELATED TERMS'),
-('Bayangol district', 'Баянгол', 'Q. MONGOLIAN PROVINCES / LOCATIONS IN LISTINGS'),
-('Bayanzurkh district', 'Баянзүрх', 'Q. MONGOLIAN PROVINCES / LOCATIONS IN LISTINGS'),
-('Best price / Cheap', 'хямд', 'A. LISTING STATUS TERMS'),
-('Bulldozer', 'бульдозер', 'K. COMMERCIAL VEHICLE TERMS'),
-('Bus', 'автобус', 'E. BODY TYPE TERMS, K. COMMERCIAL VEHICLE TERMS'),
-('Bus, Micro', 'Автобус, Микро', 'O. MY-ZAR.MN SPECIFIC TERMS'),
-('CC (cubic capacity)', 'куб/сс', 'D. CAR SPECIFICATION TERMS'),
-('CVT', 'CVT', 'D. CAR SPECIFICATION TERMS, T. COMMON ABBREVIATIONS & SHORT FORMS'),
-('Call', 'залгана уу', 'F. LOCATION / VIEWING / CONTACT TERMS'),
-('Cancel', 'цуцалж болно', 'M. UNEGUY.MN SPECIFIC INTERFACE TERMS'),
-('Car care', 'авто арчилгаа', 'L. ADDITIONAL MARKETPLACE TERMS'),
-('Car dismantling', 'Задаргаа, сэлбэг', 'P. PANZ.MN SPECIFIC TERMS'),
-('Car for sale', 'Автомашин зарна', 'A. LISTING STATUS TERMS, CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS'),
-('Car lift / Jack', 'машин өргөгч', 'G. AUTO PARTS & ACCESSORIES TERMS'),
-('Car rental', 'Авто түрээслүүлнэ', 'A. LISTING STATUS TERMS, N. 1000MASHIN.MN SPECIFIC TERMS'),
-('Car repair', 'Авто засвар, оношилгоо', 'O. MY-ZAR.MN SPECIFIC TERMS'),
-('Car service', 'авто засвар', 'L. ADDITIONAL MARKETPLACE TERMS'),
-('Car transport', 'Авто тээвэр, үйлчилгээ', 'L. ADDITIONAL MARKETPLACE TERMS, O. MY-ZAR.MN SPECIFIC TERMS'),
-('Cargo / Trailer', 'ачаа, порхов, чиргүүл', 'G. AUTO PARTS & ACCESSORIES TERMS'),
-('Cargo transportation', 'ачаа ачна', 'K. COMMERCIAL VEHICLE TERMS'),
-('Category', 'Категори', 'M. UNEGUY.MN SPECIFIC INTERFACE TERMS'),
-('Chat', 'Чатлах', 'F. LOCATION / VIEWING / CONTACT TERMS'),
-('Cheapest first', 'Хямд нь эхэндээ', 'J. TIME-RELATED LISTING TERMS'),
-('Chingeltei', 'Чингэлтэй', 'Q. MONGOLIAN PROVINCES / LOCATIONS IN LISTINGS'),
-('City', 'Хот', 'O. MY-ZAR.MN SPECIFIC TERMS'),
-('City / Province', 'хот / аймаг', 'F. LOCATION / VIEWING / CONTACT TERMS'),
-('Clean history', 'цэвэрхэн унаж байсан', 'B. CAR CONDITION TERMS'),
-('Color', 'өнгө', 'D. CAR SPECIFICATION TERMS'),
-('Commercial truck', 'ачааны машин', 'K. COMMERCIAL VEHICLE TERMS'),
-('Compare', 'Харьцуулж үзэх', 'A. BUYING DECISION TERMS, F. LOCATION / VIEWING / CONTACT TERMS'),
-('Compared', 'Харьцуулсан', 'N. 1000MASHIN.MN SPECIFIC TERMS'),
-('Condition', 'Нөхцөл', 'N. 1000MASHIN.MN SPECIFIC TERMS'),
-('Contact', 'холбогдох', 'F. LOCATION / VIEWING / CONTACT TERMS'),
-('Convertible', 'нээлттэй дээвэр', 'E. BODY TYPE TERMS'),
-('Coupe', 'купе', 'E. BODY TYPE TERMS'),
-('Crane truck', 'крантай машин', 'K. COMMERCIAL VEHICLE TERMS'),
-('Crossover', 'Кроссовер', 'D. CAR SEGMENT/CLASS TERMS, E. BODY TYPE TERMS'),
-('Cruise control', 'хурд баригч', 'D. CAR SPECIFICATION TERMS'),
-('Customs clearance', 'Гаалийн бичиг', 'CATEGORY 6: CAR MARKET & TRADING SLANG, L. ADDITIONAL MARKETPLACE TERMS'),
-('Customs cleared', 'гаальдаж бүртгүүлсэн', 'B. CAR CONDITION TERMS, S. IMPORT / CUSTOMS / TAX TERMS'),
-('Damaged', 'гэмтэлтэй', 'B. CAR CONDITION TERMS'),
-('Damaged car for parts', 'эвдрэлтэй машин, задаргаа', 'G. AUTO PARTS & ACCESSORIES TERMS'),
-('Darkhan-Uul', 'Дархан-Уул', 'Q. MONGOLIAN PROVINCES / LOCATIONS IN LISTINGS'),
-('Days ago', 'өдрийн өмнө', 'J. TIME-RELATED LISTING TERMS'),
-('Diagnostics', 'Оношлогоо', 'L. ADDITIONAL MARKETPLACE TERMS, TERMINOLOGY'),
-('Diesel', 'Дизель', 'D. CAR SEGMENT/CLASS TERMS, D. CAR SPECIFICATION TERMS'),
-('Discount', 'Хямдрал', 'C. PRICE-RELATED TERMS, CATEGORY 4: PRICING & FINANCING SLANG'),
-('District', 'дүүрэг', 'F. LOCATION / VIEWING / CONTACT TERMS'),
-('Down payment', 'Урьдчилгаа', 'C. DEPRECIATION & VALUE TERMS, C. PRICE-RELATED TERMS'),
-('Drive type', 'хөтлөх төрөл', 'D. CAR SPECIFICATION TERMS'),
-('Driver service', 'жолоочийн үйлчилгээ', 'L. ADDITIONAL MARKETPLACE TERMS'),
-('Electric', 'Цахилгаан', 'D. CAR SEGMENT/CLASS TERMS, D. CAR SPECIFICATION TERMS'),
-('Email subscription', 'Таалагдсан хайлт', 'M. UNEGUY.MN SPECIFIC INTERFACE TERMS'),
-('Engine', 'Хөдөлгүүр', 'CATEGORY 7: TECHNICAL & MECHANICAL SLANG, CORE_PARTS'),
-('Engine size / Displacement', 'моторын багтаамж', 'D. CAR SPECIFICATION TERMS'),
-('Excavator', 'экскаватор', 'K. COMMERCIAL VEHICLE TERMS'),
-('Excellent', 'маш сайн', 'B. CAR CONDITION TERMS'),
-('Exchange / Barter', 'солино', 'A. LISTING STATUS TERMS'),
-('Excise tax', 'татвар', 'L. ADDITIONAL MARKETPLACE TERMS, S. IMPORT / CUSTOMS / TAX TERMS'),
-('FWD (Front-wheel drive)', 'урд талын хөтлөгч', 'D. CAR SPECIFICATION TERMS'),
-('Fair', 'дунд зэрэг', 'B. CAR CONDITION TERMS'),
-('Family car', 'Гэр бүлийн машин', 'A. BUYING DECISION TERMS, E. BODY TYPE TERMS'),
-('Favorites / Saved', 'хадгалсан', 'F. LOCATION / VIEWING / CONTACT TERMS'),
-('Final price', 'эцсийн үнэ', 'C. PRICE-RELATED TERMS'),
-('Finance info', 'Танилцуулга', 'N. 1000MASHIN.MN SPECIFIC TERMS'),
-('First registration', 'анхны бүртгэл', 'B. CAR CONDITION TERMS'),
-('Fixed price', 'үнэ тохирохгүй', 'A. LISTING STATUS TERMS'),
-('For parts', 'эд ангиар', 'B. CAR CONDITION TERMS'),
-('For sale', 'зарна', 'A. LISTING STATUS TERMS'),
-('Free ad / Give away', 'Үнэгүй өгнө', 'A. LISTING STATUS TERMS'),
-('Free listing site', 'үнэгүй зарууд', 'A. LISTING STATUS TERMS'),
-('Fuel', 'Шатахуун', 'N. 1000MASHIN.MN SPECIFIC TERMS'),
-('Fuel type', 'шатахууны төрөл', 'D. CAR SPECIFICATION TERMS'),
-('Full option', 'пуль опшин', 'D. CAR SPECIFICATION TERMS'),
-('Gasoline', 'Бензин', 'D. CAR SEGMENT/CLASS TERMS, D. CAR SPECIFICATION TERMS'),
-('Good', 'сайн', 'B. CAR CONDITION TERMS'),
-('Hatchback', 'Хэтчбек', 'D. CAR SEGMENT/CLASS TERMS, E. BODY TYPE TERMS'),
-('Heated windshield', 'шил халаагч', 'D. CAR SPECIFICATION TERMS'),
-('Heavy machinery', 'Хүнд машин механизм', 'E. BODY TYPE TERMS, K. COMMERCIAL VEHICLE TERMS'),
-('Horsepower', 'Морины хүч', 'D. CAR SPECIFICATION TERMS, G. CAR REVIEW & COMPARISON TERMS'),
-('Hours ago', 'цагийн өмнө', 'J. TIME-RELATED LISTING TERMS'),
-('Imported', 'импортын', 'B. CAR CONDITION TERMS'),
-('Interior color', 'дотор өнгө', 'D. CAR SPECIFICATION TERMS'),
-('Khan-Uul district', 'Хан-Уул', 'Q. MONGOLIAN PROVINCES / LOCATIONS IN LISTINGS'),
-('Khentii', 'Хэнтий', 'Q. MONGOLIAN PROVINCES / LOCATIONS IN LISTINGS'),
-('Khovd', 'Ховд', 'Q. MONGOLIAN PROVINCES / LOCATIONS IN LISTINGS'),
-('Kilometers', 'км', 'D. CAR SPECIFICATION TERMS'),
-('Korean car', 'Солонгос машин', 'L. ADDITIONAL MARKETPLACE TERMS'),
-('Korean cars', 'Солонгос машин', 'N. 1000MASHIN.MN SPECIFIC TERMS'),
-('LPG / Gas', 'хийн', 'D. CAR SPECIFICATION TERMS'),
-('Leather seats', 'арьсан суудал', 'D. CAR SPECIFICATION TERMS'),
-('Left-hand drive', 'зөв хүрд', 'D. CAR SPECIFICATION TERMS'),
-('Like new', 'Шинээрээ', 'B. CAR CONDITION TERMS, CATEGORY 3: CAR CONDITION SLANG'),
-('Loan application', 'Зээлийн өргөдөл', 'Category 2: Loan & Financing Terms, N. 1000MASHIN.MN SPECIFIC TERMS'),
-('Loan calculator', 'Зээлийн тооцоолуур', 'Category 2: Loan & Financing Terms, N. 1000MASHIN.MN SPECIFIC TERMS'),
-('Loan products', 'Бүтээгдэхүүн үйлчилгээ', 'N. 1000MASHIN.MN SPECIFIC TERMS'),
-('Location', 'байршил', 'F. LOCATION / VIEWING / CONTACT TERMS'),
-('Location (area)', 'Хайлааст, 10-р хороолол', 'P. PANZ.MN SPECIFIC TERMS'),
-('Login', 'Нэвтрэх', 'M. UNEGUY.MN SPECIFIC INTERFACE TERMS'),
-('Looking to buy', 'авна', 'A. LISTING STATUS TERMS'),
-('MPV', 'Олон зориулалтт', 'E. BODY TYPE TERMS, T. COMMON ABBREVIATIONS & SHORT FORMS'),
-('Manual', 'механик', 'D. CAR SPECIFICATION TERMS'),
-('Market price', 'Зах зээлийн үнэ', 'C. PRICE-RELATED TERMS, CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('Maximum price', 'Дээд үнэ', 'M. UNEGUY.MN SPECIFIC INTERFACE TERMS'),
-('Member since', 'элссэн огноо', 'F. LOCATION / VIEWING / CONTACT TERMS'),
-('Message', 'мессеж', 'F. LOCATION / VIEWING / CONTACT TERMS'),
-('Microcar', 'жижиг машин', 'E. BODY TYPE TERMS'),
-('Mileage', 'Гүйлт', 'CATEGORY 6: CAR MARKET & TRADING SLANG, D. CAR SPECIFICATION TERMS'),
-('Million (currency)', 'сая', 'C. PRICE-RELATED TERMS'),
-('Minimum price', 'Доод үнэ', 'M. UNEGUY.MN SPECIFIC INTERFACE TERMS'),
-('Mining equipment', 'уул уурхайн хүнд машин', 'K. COMMERCIAL VEHICLE TERMS'),
-('Minivan', 'минивэн', 'E. BODY TYPE TERMS'),
-('Minutes ago', 'минутын өмнө', 'J. TIME-RELATED LISTING TERMS'),
-('Monthly payment', 'Сар бүрийн төлбөр', 'C. DEPRECIATION & VALUE TERMS, C. PRICE-RELATED TERMS'),
-('Most expensive first', 'Үнэтэй нь эхэндээ', 'J. TIME-RELATED LISTING TERMS'),
-('Motorcycle', 'мотоцикл', 'E. BODY TYPE TERMS'),
-('Motorcycle parts', 'мотоцикл мопед сэлбэг', 'G. AUTO PARTS & ACCESSORIES TERMS'),
-('My ads', 'Миний зарууд', 'M. UNEGUY.MN SPECIFIC INTERFACE TERMS'),
-('Nalaikh', 'Налайх', 'Q. MONGOLIAN PROVINCES / LOCATIONS IN LISTINGS'),
-('Needs repair', 'засвар хэрэгтэй', 'B. CAR CONDITION TERMS'),
-('Negotiable', 'тохиролцоно', 'A. LISTING STATUS TERMS'),
-('New', 'шинэ', 'B. CAR CONDITION TERMS'),
-('New item', 'Шинэ', 'M. UNEGUY.MN SPECIFIC INTERFACE TERMS'),
-('New listing', 'Шинэ зар', 'J. TIME-RELATED LISTING TERMS'),
-('No issues', 'хийх юмгүй', 'B. CAR CONDITION TERMS'),
-('No repaint', 'дусалч будаггүй', 'B. CAR CONDITION TERMS'),
-('Not registered', 'дугаар аваагүй', 'B. CAR CONDITION TERMS'),
-('Not running', 'ажиллахгүй', 'B. CAR CONDITION TERMS'),
-('Notifications', 'И-мэйлээр мэдээлэл', 'M. UNEGUY.MN SPECIFIC INTERFACE TERMS'),
-('Number of doors', 'хаалганы тоо', 'D. CAR SPECIFICATION TERMS'),
-('Number of seats', 'суудлын тоо', 'D. CAR SPECIFICATION TERMS'),
-('One owner', 'нэг эзэн', 'B. CAR CONDITION TERMS'),
-('Orkhon', 'Орхон', 'Q. MONGOLIAN PROVINCES / LOCATIONS IN LISTINGS'),
-('Other cars', 'Бусад машин', 'O. MY-ZAR.MN SPECIFIC TERMS'),
-('Parking sensor', 'булан мэдрэгч', 'D. CAR SPECIFICATION TERMS'),
-('Passenger car', 'Суудлын машин', 'E. BODY TYPE TERMS, O. MY-ZAR.MN SPECIFIC TERMS'),
-('Phone number', 'Утас', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS, F. LOCATION / VIEWING / CONTACT TERMS'),
-('Pickup truck', 'пикап', 'E. BODY TYPE TERMS'),
-('Porter (small truck)', 'портер', 'K. COMMERCIAL VEHICLE TERMS'),
-('Post an ad', 'Зар нэмэх', 'A. LISTING STATUS TERMS'),
-('Posted date', 'нийтэлсэн огноо', 'F. LOCATION / VIEWING / CONTACT TERMS'),
-('Power seats', 'суудал автомат', 'D. CAR SPECIFICATION TERMS'),
-('Price', 'үнэ', 'C. PRICE-RELATED TERMS'),
-('Price drop', 'үнэ буурсан', 'C. PRICE-RELATED TERMS'),
-('Price negotiable', 'үнэ тохиролцоно', 'C. PRICE-RELATED TERMS'),
-('Province', 'Аймаг', 'O. MY-ZAR.MN SPECIFIC TERMS'),
-('Publish date', 'Нийтэлсэн', 'M. UNEGUY.MN SPECIFIC INTERFACE TERMS'),
-('RWD (Rear-wheel drive)', 'хойд талын хөтлөгч', 'D. CAR SPECIFICATION TERMS'),
-('Registered', 'дугаар авсан', 'B. CAR CONDITION TERMS'),
-('Registration', 'бүртгэл', 'M. UNEGUY.MN SPECIFIC INTERFACE TERMS'),
-('Removed / Deleted', 'устгагдсан', 'A. LISTING STATUS TERMS'),
-('Report complaint', 'гомдол', 'F. LOCATION / VIEWING / CONTACT TERMS'),
-('Reserved', 'захиалагдсан', 'A. LISTING STATUS TERMS'),
-('Right-hand drive', 'буруу хүрд', 'D. CAR SPECIFICATION TERMS'),
-('SUV', 'Жийп', 'E. BODY TYPE TERMS, T. COMMON ABBREVIATIONS & SHORT FORMS'),
-('Safety tips', 'Луйвраас хэрхэн сэргийлэх', 'M. UNEGUY.MN SPECIFIC INTERFACE TERMS'),
-('Scrap / Damaged car', 'Эвдрэлтэй машин', 'B. CAR CONDITION TERMS'),
-('Search', 'хайх', 'L. ADDITIONAL MARKETPLACE TERMS'),
-('Sedan', 'Седан', 'D. CAR SEGMENT/CLASS TERMS, E. BODY TYPE TERMS'),
-('Seller', 'зарын эзэн', 'F. LOCATION / VIEWING / CONTACT TERMS'),
-('Semi-trailer', 'чиргүүл', 'E. BODY TYPE TERMS'),
-('Share', 'хуваалцах', 'F. LOCATION / VIEWING / CONTACT TERMS'),
-('Show number', 'Дугаар харах', 'F. LOCATION / VIEWING / CONTACT TERMS, M. UNEGUY.MN SPECIFIC INTERFACE TERMS'),
-('Smart key', 'смарт түлхүүр', 'D. CAR SPECIFICATION TERMS'),
-('Sold', 'зарагдсан', 'A. LISTING STATUS TERMS'),
-('Songinokhairkhan', 'Сонгинохайрхан', 'Q. MONGOLIAN PROVINCES / LOCATIONS IN LISTINGS'),
-('Sort by date', 'Огноогоор', 'J. TIME-RELATED LISTING TERMS'),
-('Sort by relevance', 'Холбогдолтой', 'J. TIME-RELATED LISTING TERMS'),
-('Spare parts', 'сэлбэг эд анги', 'G. AUTO PARTS & ACCESSORIES TERMS'),
-('Starting price', 'эхлэх үнэ', 'C. PRICE-RELATED TERMS'),
-('Status', 'Төлөв', 'N. 1000MASHIN.MN SPECIFIC TERMS'),
-('Steering wheel', 'Жолооны хүрд', '23. ELECTRIC POWER STEERING / ЦАХИЛГААН РУЛЬ, CORE_PARTS'),
-('Stock wheels', 'сток обуд', 'D. CAR SPECIFICATION TERMS'),
-('Sub-district', 'хороо', 'F. LOCATION / VIEWING / CONTACT TERMS'),
-('Sukhbaatar district', 'Сүхбаатар', 'Q. MONGOLIAN PROVINCES / LOCATIONS IN LISTINGS'),
-('Sunroof', 'саравч', 'D. CAR SPECIFICATION TERMS'),
-('Test drive available', 'туршилт жолоодлого боломжтой', 'F. LOCATION / VIEWING / CONTACT TERMS'),
-('The day before yesterday', 'Уржигдар', 'J. TIME-RELATED LISTING TERMS'),
-('Thousand (currency)', 'мянга', 'C. PRICE-RELATED TERMS'),
-('Time posted', '- (various time formats)', 'O. MY-ZAR.MN SPECIFIC TERMS'),
-('Tires', 'дугуй', 'G. AUTO PARTS & ACCESSORIES TERMS'),
-('Today', 'Өнөөдөр', 'J. TIME-RELATED LISTING TERMS'),
-('Total ads', 'Зар байна', 'A. LISTING STATUS TERMS'),
-('Total cost', 'нийт зардал', 'C. PRICE-RELATED TERMS'),
-('Trade-in', 'Солих', 'C. PRICE-RELATED TERMS, CATEGORY 4: PRICING & FINANCING SLANG'),
-('Transmission', 'Хурдны хайрцаг', 'CATEGORY 7: TECHNICAL & MECHANICAL SLANG, CORE_PARTS'),
-('Truck', 'Ачааны машин', 'E. BODY TYPE TERMS, O. MY-ZAR.MN SPECIFIC TERMS'),
-('Ulaanbaatar', 'Улаанбаатар', 'F. LOCATION / VIEWING / CONTACT TERMS'),
-('Urgent sale', 'Яаралтай зарна', 'A. LISTING STATUS TERMS, CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS'),
-('Used', 'хуучин', 'B. CAR CONDITION TERMS'),
-('Used item', 'Хуучин', 'M. UNEGUY.MN SPECIFIC INTERFACE TERMS'),
-('Useless to useful', 'Хэрэглэхгүй зүйлээ зарж, хэрэгтэй зүйлдээ зарцуул', 'P. PANZ.MN SPECIFIC TERMS'),
-('Uvs', 'Увс', 'Q. MONGOLIAN PROVINCES / LOCATIONS IN LISTINGS'),
-('VIN / Frame number', 'аралын дугаар', 'D. CAR SPECIFICATION TERMS'),
-('VIP listing', 'VIP', 'A. LISTING STATUS TERMS, CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('Van', 'ван', 'E. BODY TYPE TERMS'),
-('Wagon / Estate', 'вагон', 'E. BODY TYPE TERMS'),
-('WhatsApp', 'WhatsApp', 'F. LOCATION / VIEWING / CONTACT TERMS'),
-('Wheels / Rims', 'обуд', 'G. AUTO PARTS & ACCESSORIES TERMS'),
-('Winter model', 'өвлийн загвар', 'B. CAR CONDITION TERMS'),
-('Wishlist / Saved', 'Хадгалсан', 'N. 1000MASHIN.MN SPECIFIC TERMS'),
-('With loan', 'Зээлтэй', 'O. MY-ZAR.MN SPECIFIC TERMS'),
-('With loan / Leased', 'зээлгүй', 'A. LISTING STATUS TERMS'),
-('With photo', 'зурган зар', 'A. LISTING STATUS TERMS'),
-('With plate', 'Дугаартай', 'CATEGORY 6: CAR MARKET & TRADING SLANG, L. ADDITIONAL MARKETPLACE TERMS'),
-('With plate cars', 'ДУГААРТАЙ МАШИН', 'N. 1000MASHIN.MN SPECIFIC TERMS'),
-('Without loan', 'Зээлгүй', 'O. MY-ZAR.MN SPECIFIC TERMS'),
-('Without plate', 'Дугааргүй', 'CATEGORY 6: CAR MARKET & TRADING SLANG, L. ADDITIONAL MARKETPLACE TERMS'),
-('Without plate cars', 'ДУГААРГҮЙ МАШИН', 'N. 1000MASHIN.MN SPECIFIC TERMS'),
-('Year of import', 'орж ирсэн он', 'D. CAR SPECIFICATION TERMS'),
-('Year of manufacture', 'үйлдвэрлэсэн он', 'D. CAR SPECIFICATION TERMS'),
-('Yesterday', 'Өчигдөр', 'J. TIME-RELATED LISTING TERMS'),
-('Zavkhan', 'Завхан', 'Q. MONGOLIAN PROVINCES / LOCATIONS IN LISTINGS'),
-('3-year rule', '3 жилийн дүрэм', 'A. BUYING DECISION TERMS'),
-('4WD check', '4 дугуй хөтлөгч шалгах', 'B. USED CAR INSPECTION TERMS'),
-('AWD / 4WD', 'Бүх дугуйн хөтлөгч', 'D. CAR SEGMENT/CLASS TERMS'),
-('Accident history', 'Ослын түүх', 'B. USED CAR INSPECTION TERMS'),
-('Advantage / Pro', 'Давуу тал', 'G. CAR REVIEW & COMPARISON TERMS'),
-('Advantages of diesel', 'Дизель хөдөлгүүрийн давуу тал', 'G. CAR REVIEW & COMPARISON TERMS'),
-('Advantages of gasoline', 'Бензин хөдөлгүүрийн давуу тал', 'G. CAR REVIEW & COMPARISON TERMS'),
-('Air filter', '**Агаар шүүлтүүр**', '4. MAINTENANCE ITEMS, 8. FILTERS / ШҮҮЛТҮҮР'),
-('All-season tires', 'Бүх улирлын дугуй', 'D. CAR SEGMENT/CLASS TERMS'),
-('Auction grade 3', 'Үнэлгээ 3', 'B. USED CAR INSPECTION TERMS'),
-('Auction grade 4.5', 'Үнэлгээ 4.5', 'B. USED CAR INSPECTION TERMS'),
-('Auction grade R', 'Үнэлгээ R', 'B. USED CAR INSPECTION TERMS'),
-('Auction grade S/6', 'Үнэлгээ S, 6', 'B. USED CAR INSPECTION TERMS'),
-('Auction purchase', 'Дуудлага худалдаа', 'CATEGORY 6: CAR MARKET & TRADING SLANG, F. BUYING/SELLING PROCESS TERMS'),
-('Auction sheet reading', 'Аукционы бичиг унших', 'B. USED CAR INSPECTION TERMS'),
-('Automatic transmission', 'Автомат хурдны хайрцаг', 'G. CAR REVIEW & COMPARISON TERMS'),
-('Battery life', 'Аккумуляторын нас', 'E. OWNERSHIP COST TERMS'),
-('Battery replacement', 'Аккумулятор солих', 'E. OWNERSHIP COST TERMS'),
-('Best value', 'Хамгийн үнэ цэнэтэй', 'A. BUYING DECISION TERMS'),
-('Black smoke', 'Хар утаа', 'B. USED CAR INSPECTION TERMS'),
-('Blue smoke', 'Цэнхэр утаа', 'B. USED CAR INSPECTION TERMS'),
-('Body check', 'Их бие шалгах', 'B. USED CAR INSPECTION TERMS'),
-('Book value', 'Номын үнэ', 'C. DEPRECIATION & VALUE TERMS'),
-('Brake check', 'Тоормос шалгах', '4. BRAKES / ТОРМОС, B. USED CAR INSPECTION TERMS'),
-('Budget', 'Төсөв', 'A. BUYING DECISION TERMS'),
-('Budget car', 'Хямд машин', 'D. CAR SEGMENT/CLASS TERMS'),
-('Budget-friendly', 'Төсөвт ээлтэй', 'A. BUYING DECISION TERMS'),
-('CVT transmission', 'CVT хурдны хайрцаг', 'G. CAR REVIEW & COMPARISON TERMS'),
-('Cabin air filter', '**Салон шүүлтүүр**', '4. MAINTENANCE ITEMS, 8. FILTERS / ШҮҮЛТҮҮР'),
-('Car loan', 'Автомашины зээл', 'C. DEPRECIATION & VALUE TERMS, Category 2: Loan & Financing Terms'),
-('Car loan agreement', 'Автомашин зээлээр худалдах, худалдан авах гэрээ', 'F. BUYING/SELLING PROCESS TERMS'),
-('Car marketplace', 'Автомашины зарын сайт', 'F. BUYING/SELLING PROCESS TERMS'),
-('Car purchase agreement', 'Автомашин худалдах, худалдан авах гэрээ', 'F. BUYING/SELLING PROCESS TERMS'),
-('Car rental agreement', 'Автомашин түрээслэх гэрээ', 'F. BUYING/SELLING PROCESS TERMS'),
-('Car review', 'Машин тойм', 'CATEGORY 9: COMMUNITY EXPRESSIONS & CULTURAL TERMS, G. CAR REVIEW & COMPARISON TERMS'),
-('Cargo space', 'Ачааны зай', 'G. CAR REVIEW & COMPARISON TERMS'),
-('City car', 'Хотын машин', 'A. BUYING DECISION TERMS'),
-('Collateral', 'Барьцаа', 'C. DEPRECIATION & VALUE TERMS, Category 2: Loan & Financing Terms'),
-('Compact', 'Жижиг', 'D. CAR SEGMENT/CLASS TERMS'),
-('Comparison', 'Харьцуулалт', 'G. CAR REVIEW & COMPARISON TERMS'),
-('Comprehensive insurance', 'Нэмэлт даатгал', 'C. DEPRECIATION & VALUE TERMS'),
-('Consult with owners', 'Унаж байсан хүмүүстэй зөвлөлдөх', 'A. BUYING DECISION TERMS'),
-('Coolant change', 'Антифриз солих', 'E. OWNERSHIP COST TERMS'),
-('Coolant check', 'Хөргөлт шалгах', 'B. USED CAR INSPECTION TERMS'),
-('Credit history', 'Зээлийн түүх', 'C. DEPRECIATION & VALUE TERMS, Category 2: Loan & Financing Terms'),
-('Customs duty', 'Гаалийн албан татвар', 'C. DEPRECIATION & VALUE TERMS, S. IMPORT / CUSTOMS / TAX TERMS'),
-('Dealer purchase', 'Дилерээс авах', 'F. BUYING/SELLING PROCESS TERMS'),
-('Debt-to-income ratio', 'Орлогодох харьцаа', 'C. DEPRECIATION & VALUE TERMS'),
-('Depreciation', 'Үнэ цэнэ алдах', 'C. DEPRECIATION & VALUE TERMS'),
-('Differential lock', 'Дифференциал түгжих', 'B. USED CAR INSPECTION TERMS'),
-('Direct import', 'Шууд импортлох', 'F. BUYING/SELLING PROCESS TERMS'),
-('Disadvantage / Con', 'Сул тал', 'G. CAR REVIEW & COMPARISON TERMS'),
-('Disadvantages of diesel', 'Дизель хөдөлгүүрийн сул тал', 'G. CAR REVIEW & COMPARISON TERMS'),
-('Disadvantages of gasoline', 'Бензин хөдөлгүүрийн сул тал', 'G. CAR REVIEW & COMPARISON TERMS'),
-('Discounts/Promotions', 'Хөнгөлөлт урамшуулал', 'A. BUYING DECISION TERMS'),
-('Don''t rush', 'Яарахгүй байх', 'A. BUYING DECISION TERMS'),
-('Downgrade', 'Буулгах / Хямд машин руу', 'A. BUYING DECISION TERMS'),
-('Driving needs (city vs highway)', 'Хот унах уу? Хөдөө унах уу?', 'A. BUYING DECISION TERMS'),
-('Durable', 'Тэсвэртэй / Удаан эдэлгээтэй', 'D. CAR SEGMENT/CLASS TERMS'),
-('Economy car', 'Эдийн засгийн машин', 'D. CAR SEGMENT/CLASS TERMS'),
-('Electrical check', 'Цахилгаан шалгах', 'B. USED CAR INSPECTION TERMS'),
-('Engine RPM check', 'Хөдөлгүүрийн эргэлт шалгах', 'B. USED CAR INSPECTION TERMS'),
-('Engine check', 'Хөдөлгүүр шалгах', 'B. USED CAR INSPECTION TERMS'),
-('Engine displacement', 'Хөдөлгүүрийн багтаамж', 'G. CAR REVIEW & COMPARISON TERMS'),
-('Engine sound', 'Хөдөлгүүрийн дуу', 'B. USED CAR INSPECTION TERMS'),
-('Engine type selection', 'Хөдөлгүүрийн төрөл сонгох', 'A. BUYING DECISION TERMS'),
-('Entry-level', 'Анхан шатны', 'A. BUYING DECISION TERMS'),
-('Excise tax / Special tax', 'Онцгой албан татвар', 'C. DEPRECIATION & VALUE TERMS'),
-('Executive', 'Захирлын', 'D. CAR SEGMENT/CLASS TERMS'),
-('Exterior condition grade', 'Гадна талын үнэлгээ', 'B. USED CAR INSPECTION TERMS'),
-('Financial lease agreement', 'Автомашины санхүүгийн түрээсийн гэрээ', 'F. BUYING/SELLING PROCESS TERMS'),
-('First car', 'Анхны машин', 'A. BUYING DECISION TERMS'),
-('Frame check', 'Рам шалгах', 'B. USED CAR INSPECTION TERMS'),
-('Front-wheel drive', 'Урд дугуйн хөтлөгч', 'D. CAR SEGMENT/CLASS TERMS, DRIVETRAIN'),
-('Fuel consumption', 'Шатахуун зарцуулалт', 'A. BUYING DECISION TERMS'),
-('Fuel consumption norm', 'Шатахуун зарцуулалтын норм', 'E. OWNERSHIP COST TERMS'),
-('Fuel costs', 'Шатахуун зардал', 'E. OWNERSHIP COST TERMS'),
-('Full-size', 'Том оврын', 'D. CAR SEGMENT/CLASS TERMS'),
-('Gather information', 'Мэдээлэл цуглуулах', 'A. BUYING DECISION TERMS'),
-('Generation/Model year', 'Үе / Модель оныг', 'G. CAR REVIEW & COMPARISON TERMS'),
-('Grade A interior', 'Салон А', 'B. USED CAR INSPECTION TERMS'),
-('Grade C interior', 'Салон C', 'B. USED CAR INSPECTION TERMS'),
-('Hail-damaged car', 'Мөндөрт цохиулсан', 'B. USED CAR INSPECTION TERMS'),
-('Half-frame', 'Хагас рам', 'B. USED CAR INSPECTION TERMS'),
-('Heisei year conversion', 'Хесейгийн тоолол', 'G. CAR REVIEW & COMPARISON TERMS'),
-('Hidden costs', 'Нууц зардал', 'C. DEPRECIATION & VALUE TERMS'),
-('High ground clearance', 'Өндөр тэнхлэг', 'D. CAR SEGMENT/CLASS TERMS'),
-('Highway car', 'Хурдны замын машин', 'A. BUYING DECISION TERMS'),
-('Import cost calculation', 'Нийт гар дээр ирэх үнэ', 'C. DEPRECIATION & VALUE TERMS'),
-('Insurance premium', 'Даатгалын хураамж', 'C. DEPRECIATION & VALUE TERMS, Category 1: Insurance Policy Types & Coverage'),
-('Interest rate', 'Зээлийн хүү', 'C. DEPRECIATION & VALUE TERMS'),
-('Interior condition grade', 'Салоны үнэлгээ', 'B. USED CAR INSPECTION TERMS'),
-('Investment', 'Хөрөнгө оруулалт', 'C. DEPRECIATION & VALUE TERMS'),
-('Leasing / Auto leasing', 'Автомашины лизинг', 'C. DEPRECIATION & VALUE TERMS'),
-('Loan term', 'Зээлийн хугацаа', 'C. DEPRECIATION & VALUE TERMS, H. FINANCE / LEASING TERMS'),
-('Luxury', 'Тансаг', 'A. BUYING DECISION TERMS'),
-('Luxury segment', 'Тансаг ангилал', 'D. CAR SEGMENT/CLASS TERMS'),
-('Maintenance costs', 'Засвар үйлчилгээний зардал', 'E. OWNERSHIP COST TERMS'),
-('Mandatory insurance', 'Албан журмын даатгал', 'C. DEPRECIATION & VALUE TERMS'),
-('Manual transmission', 'Механик хурдны хайрцаг', 'G. CAR REVIEW & COMPARISON TERMS'),
-('Market value', 'Зах зээлийн үнэ', 'C. DEPRECIATION & VALUE TERMS'),
-('Mid-size', 'Дунд оврын', 'D. CAR SEGMENT/CLASS TERMS'),
-('Mileage check', 'Гүйлт шалгах', 'B. USED CAR INSPECTION TERMS'),
-('Minivan / Microbus', 'Микроавтобус', 'D. CAR SEGMENT/CLASS TERMS'),
-('Mirror check', 'Толь шалгах', 'B. USED CAR INSPECTION TERMS'),
-('Model year', 'Үйлдвэрлэсэн он', 'G. CAR REVIEW & COMPARISON TERMS'),
-('Model-specific review', 'Загварын тойм', 'G. CAR REVIEW & COMPARISON TERMS'),
-('Negotiate price', 'Үнэ тохиролцох', 'C. DEPRECIATION & VALUE TERMS'),
-('New car', 'Шинэ машин', 'A. BUYING DECISION TERMS'),
-('OBD diagnosis', 'OBD оношлогоо', 'B. USED CAR INSPECTION TERMS'),
-('Odometer rollback', 'Гүйлт ухраах', 'B. USED CAR INSPECTION TERMS'),
-('Off-road', 'Замын бус / Off-road', 'A. BUYING DECISION TERMS'),
-('Official dealer', 'Албан ёсны борлуулагч', 'E. OWNERSHIP COST TERMS'),
-('Oil check', 'Тос шалгах', 'B. USED CAR INSPECTION TERMS'),
-('Oil leak check', 'Тос гоожих', 'B. USED CAR INSPECTION TERMS'),
-('Oil viscosity', 'Тосны зуурамтгай чанар', 'E. OWNERSHIP COST TERMS'),
-('Online leasing request', 'Онлайн лизингийн хүсэлт', 'F. BUYING/SELLING PROCESS TERMS'),
-('Online plate ordering', 'Цахимаар дугаар захиалах', 'C. DEPRECIATION & VALUE TERMS'),
-('Ownership transfer', 'Эзэмшлийн шилжүүлэх', 'C. DEPRECIATION & VALUE TERMS'),
-('Paint thickness', 'Будгийн зузаан', 'B. USED CAR INSPECTION TERMS'),
-('Panel gap', 'Панелийн зай', 'B. USED CAR INSPECTION TERMS'),
-('Parking', 'Зогсоол', 'E. OWNERSHIP COST TERMS'),
-('Part availability', 'Сэлбэгийн олдоц', 'A. BUYING DECISION TERMS'),
-('Pickup', 'Пикап', 'D. CAR SEGMENT/CLASS TERMS'),
-('Plate transfer', 'Дугаар шилжүүлэх', 'F. BUYING/SELLING PROCESS TERMS'),
-('Port preparation', 'Боомт хүртэл бэлтгэх зардал', 'C. DEPRECIATION & VALUE TERMS'),
-('Practical car', 'Практик машин', 'D. CAR SEGMENT/CLASS TERMS'),
-('Premium', 'Премиум', 'A. BUYING DECISION TERMS'),
-('Premium segment', 'Премиум ангилал', 'D. CAR SEGMENT/CLASS TERMS'),
-('Price comparison', 'Үнийг харьцуулах', 'C. DEPRECIATION & VALUE TERMS'),
-('Private sale', 'Хувь хүний зарнаас авах', 'F. BUYING/SELLING PROCESS TERMS'),
-('Professional inspection', 'Мэргэжлийн оношлогоо', 'B. USED CAR INSPECTION TERMS'),
-('Purpose / Use case', 'Зориулалт', 'A. BUYING DECISION TERMS'),
-('Rear-wheel drive', 'Хойд дугуйн хөтлөгч', 'D. CAR SEGMENT/CLASS TERMS, DRIVETRAIN'),
-('Registration fee', 'Бүртгэлийн хураамж', 'C. DEPRECIATION & VALUE TERMS, CATEGORY 4: PRICING & FINANCING SLANG'),
-('Reliability', 'Найдвартай байдал', 'A. BUYING DECISION TERMS'),
-('Reliable', 'Найдвартай', 'D. CAR SEGMENT/CLASS TERMS'),
-('Repair costs', 'Засварын зардал', 'E. OWNERSHIP COST TERMS'),
-('Resale value', 'Дахин зарах үнэ', 'C. DEPRECIATION & VALUE TERMS'),
-('Rust check', 'Зэв шалгах', 'B. USED CAR INSPECTION TERMS'),
-('SUV / Jeep', 'Жийп / SUV', 'D. CAR SEGMENT/CLASS TERMS'),
-('Scheduled service', 'Хугацаат техник үйлчилгээ', 'E. OWNERSHIP COST TERMS'),
-('Scrap value', 'Хаягдалын үнэ', 'C. DEPRECIATION & VALUE TERMS'),
-('Seating capacity', 'Суудлын багтаамж', 'G. CAR REVIEW & COMPARISON TERMS'),
-('Second-hand', 'Хоёр дахь гар', 'A. BUYING DECISION TERMS'),
-('Semi-synthetic oil', 'Хагас синтетик тос', '3. OIL & FLUIDS / ТОС ТОСОЛГОО, E. OWNERSHIP COST TERMS'),
-('Service center', 'Засварын газар', 'E. OWNERSHIP COST TERMS'),
-('Service history', 'Засварын түүх', 'B. USED CAR INSPECTION TERMS'),
-('Shipping cost', 'Тээврийн зардал', 'C. DEPRECIATION & VALUE TERMS'),
-('Spare parts price', 'Сэлбэгийн үнэ', 'E. OWNERSHIP COST TERMS'),
-('Spare tire check', 'Нөөц дугуй шалгах', 'B. USED CAR INSPECTION TERMS'),
-('Spark plug', '**Свэч**', '4. MAINTENANCE ITEMS, 9. ENGINE COMPONENTS / ХӨДӨЛГҮҮР'),
-('Specialized repair', 'Дагнасан засварын газар', 'E. OWNERSHIP COST TERMS'),
-('Sports car', 'Спорт машин', 'D. CAR SEGMENT/CLASS TERMS'),
-('State inspection', '**Улсын үзлэг**', '2. DIAGNOSTICS / ОНОШЛОГОО, 5. SERVICE INTERVALS'),
-('State license plate', 'Улсын дугаар', 'C. DEPRECIATION & VALUE TERMS'),
-('Station wagon', 'Вагон', 'D. CAR SEGMENT/CLASS TERMS'),
-('Steering check', 'Жолооны механизм шалгах', 'B. USED CAR INSPECTION TERMS'),
-('Subcompact', 'Маш жижиг', 'D. CAR SEGMENT/CLASS TERMS'),
-('Summer preparation', 'Зунд бэлтгэх', 'E. OWNERSHIP COST TERMS'),
-('Suspension check', 'Зөөллүүр / Амортизатор шалгах', 'B. USED CAR INSPECTION TERMS'),
-('Synthetic oil', 'Синтетик тос', 'E. OWNERSHIP COST TERMS'),
-('Technical specifications', 'Техникийн үзүүлэлт', 'A. BUYING DECISION TERMS'),
-('Test drive', 'Тест драйв', '21. CUSTOMER SERVICE / ХЭРЭГЛЭГЧИЙН ҮЙЛЧИЛГЭЭ, B. USED CAR INSPECTION TERMS'),
-('Test drive / Try', 'Унаж, барьж үзэх', 'A. BUYING DECISION TERMS'),
-('Timing belt check', 'Ремен шалгах', 'B. USED CAR INSPECTION TERMS'),
-('Timing belt replacement', 'Ремен сольх', 'E. OWNERSHIP COST TERMS'),
-('Tire check', 'Дугуй шалгах', 'B. USED CAR INSPECTION TERMS'),
-('Tire replacement', 'Дугуй солих', 'E. OWNERSHIP COST TERMS'),
-('Tire tread depth', 'Дугуйн хээний гүн', '5. TIRES & WHEELS / ДУГУЙ, B. USED CAR INSPECTION TERMS'),
-('Tools check', 'Багаж хэрэгсэл шалгах', 'B. USED CAR INSPECTION TERMS'),
-('Top 10 ranking', 'TOP10 жагсаалт', 'G. CAR REVIEW & COMPARISON TERMS'),
-('Torque', 'Эргүүлэх хүч', 'G. CAR REVIEW & COMPARISON TERMS'),
-('Total cost of ownership', 'Нийт эзэмших зардал', 'G. CAR REVIEW & COMPARISON TERMS'),
-('Towing capacity', 'Чирэх чадвар', 'G. CAR REVIEW & COMPARISON TERMS'),
-('Trade-in program', 'Урьдчилгаанд машинд оруулах', 'F. BUYING/SELLING PROCESS TERMS'),
-('Trade-in value', 'Урьдчилгаанд тооцох үнэ', 'C. DEPRECIATION & VALUE TERMS'),
-('Transmission check', 'Хурдны хайрцаг шалгах', 'B. USED CAR INSPECTION TERMS'),
-('Turning radius', 'Эргэх радиус', 'G. CAR REVIEW & COMPARISON TERMS'),
-('Underbody check', 'Доод хэсэг шалгах', 'B. USED CAR INSPECTION TERMS'),
-('Upgrade', 'Сайжруулах / Шинэчлэх', 'A. BUYING DECISION TERMS'),
-('Used car', 'Хуучин машин', 'A. BUYING DECISION TERMS'),
-('VAT / НӨАТ', 'Нэмэгдсэн өртгийн албан татвар', 'C. DEPRECIATION & VALUE TERMS'),
-('VIN check', 'Аралын дугаар шалгах', 'B. USED CAR INSPECTION TERMS'),
-('Vehicle insurance', 'Тээврийн хэрэгслийн даатгал', 'C. DEPRECIATION & VALUE TERMS, Category 1: Insurance Policy Types & Coverage'),
-('Vehicle registration', 'Тээврийн хэрэгслийг бүртгэх', 'F. BUYING/SELLING PROCESS TERMS'),
-('Vehicle tax', 'Автомашины татвар', 'C. DEPRECIATION & VALUE TERMS'),
-('Visual inspection', 'Нүдээр үзэх', 'B. USED CAR INSPECTION TERMS'),
-('Warm engine test', 'Халсан хөдөлгүүр шалгах', 'B. USED CAR INSPECTION TERMS'),
-('Water-damaged car', 'Усанд автсан машин', 'B. USED CAR INSPECTION TERMS'),
-('Weight', 'Жин', 'G. CAR REVIEW & COMPARISON TERMS'),
-('Winter fuel increase', 'Өвлийн шатахуун нэмэгдэл', 'E. OWNERSHIP COST TERMS'),
-('Wiper blade', '**Шил арчигч**', '14. WINDSHIELD & WIPERS / ШИЛ АРЧИГЧ, 4. MAINTENANCE ITEMS'),
-('Year-end purchase', 'Жилийн эцсээр авах', 'A. BUYING DECISION TERMS'),
-('Zero down payment', '0% урьдчилгаа', 'C. DEPRECIATION & VALUE TERMS'),
-('3-Channel Setup', '3н суваг', '27. HYUNDAI/KIA DEALER TERMS / ХЬЮНДАЙ КИА ДИЛЕРИЙН НЭР ТОМЬ'),
-('3D Wheel Alignment', '3D тэнхлэг тохиргоо', '2. DIAGNOSTICS / ОНОШЛОГОО'),
-('4-Season Tire', '4 улирлын дугуй', '5. TIRES & WHEELS / ДУГУЙ'),
-('5-Car Service Bay', 'Таван автомашин орох ажлын пост', '27. HYUNDAI/KIA DEALER TERMS / ХЬЮНДАЙ КИА ДИЛЕРИЙН НЭР ТОМЬ'),
-('6-Ton Lift', '6тн даацтай өргөх лифт', '27. HYUNDAI/KIA DEALER TERMS / ХЬЮНДАЙ КИА ДИЛЕРИЙН НЭР ТОМЬ'),
-('AC Repair', 'Кондиционер засвар', '11. HEATING & AC / ХАЛААЛТ КОНДИШН'),
-('Aggregate/Assembly Repair', 'Агрегат засвар', '1. SERVICE TYPES / ҮЙЛЧИЛГЭЭНИЙ ТӨРӨЛ'),
-('Alarm System', 'Дохиоллын систем', '25. ADDITIONAL SERVICES / НЭМЭЛТ ҮЙЛЧИЛГЭЭ'),
-('Alternator', 'Генератор', '7. ELECTRICAL / ЦАХИЛГААН, CORE_PARTS'),
-('Annual Service', 'Жилийн үйлчилгээ', '20. SERVICE PACKAGES / ҮЙЛЧИЛГЭЭНИЙ БАГЦ'),
-('Authorized Service Center', 'Албан ёсны засвар үйлчилгээний төв', '1. SERVICE TYPES / ҮЙЛЧИЛГЭЭНИЙ ТӨРӨЛ'),
-('Authorized/Warranty Repair', 'Баталгаат засвар', '1. SERVICE TYPES / ҮЙЛЧИЛГЭЭНИЙ ТӨРӨЛ'),
-('Balancing Machine', 'Балансировкийн төхөөрөмж', '18. FACILITY & EQUIPMENT / ТОНОГ ТӨХӨӨРӨМЖ'),
-('Ball Joint', '**Өндгөн тулгуур**', '4. MAINTENANCE ITEMS, 6. SUSPENSION / ЯВАХ ЭД АНГИ'),
-('Battery', '**Аккумулятор**', '4. MAINTENANCE ITEMS, 7. ELECTRICAL / ЦАХИЛГААН'),
-('Battery Electrolyte Level', 'Шингэний түвшин', '7. ELECTRICAL / ЦАХИЛГААН'),
-('Battery Terminal', '**Туйл**', '4. MAINTENANCE ITEMS, 7. ELECTRICAL / ЦАХИЛГААН'),
-('Body repair', 'Их бие засвар', '1. SERVICE TYPES / ҮЙЛЧИЛГЭЭНИЙ ТӨРӨЛ, R. CAR MAINTENANCE & SERVICE TERMS'),
-('Brake Distance', 'Тормосны зам', '4. BRAKES / ТОРМОС'),
-('Brake Drum', '**Тормос барабан**', '4. BRAKES / ТОРМОС, 4. MAINTENANCE ITEMS'),
-('Brake Force', 'Тормосны хүч', '4. BRAKES / ТОРМОС'),
-('Brake Pedal Free Play', 'Тормосны дөрөөний сул явалт', '4. BRAKES / ТОРМОС'),
-('Brake System', 'Тоормосны систем', '4. BRAKES / ТОРМОС, CORE_PARTS'),
-('Brake service', 'хоймор засвар', 'R. CAR MAINTENANCE & SERVICE TERMS'),
-('Bumper', 'Буфер', '25. ADDITIONAL SERVICES / НЭМЭЛТ ҮЙЛЧИЛГЭЭ, CORE_PARTS'),
-('Bumper Crack Repair', 'Хагарсан буфер засах', '25. ADDITIONAL SERVICES / НЭМЭЛТ ҮЙЛЧИЛГЭЭ'),
-('Bumper Dent Repair', 'Хонхойсон буфер засах', '25. ADDITIONAL SERVICES / НЭМЭЛТ ҮЙЛЧИЛГЭЭ'),
-('Bumper Repair', 'Буфер засвар', '1. SERVICE TYPES / ҮЙЛЧИЛГЭЭНИЙ ТӨРӨЛ'),
-('CV Joint', 'Мушгиа гүүшин', '6. SUSPENSION / ЯВАХ ЭД АНГИ, DRIVETRAIN'),
-('Car wash', 'Машин угаалга', 'E. OWNERSHIP COST TERMS, R. CAR MAINTENANCE & SERVICE TERMS'),
-('Clutch', 'Клиш', '13. CLUTCH / КЛИШ, CORE_PARTS'),
-('Computer Diagnosis', 'Компьютер оношлогоо', '2. DIAGNOSTICS / ОНОШЛОГОО'),
-('Cooling System', 'Хөргөлтийн систем', '10. COOLING / ХӨРГӨЛТ'),
-('Customer Lounge', 'Үйлчлүүлэгчийн хүлээлгийн өрөө', '21. CUSTOMER SERVICE / ХЭРЭГЛЭГЧИЙН ҮЙЛЧИЛГЭЭ'),
-('Customer Waiting Room', 'Үйлчлүүлэгчийн хүлээлгийн өрөө', '27. HYUNDAI/KIA DEALER TERMS / ХЬЮНДАЙ КИА ДИЛЕРИЙН НЭР ТОМЬ'),
-('Decelerometer', 'Децелерометр', '2. DIAGNOSTICS / ОНОШЛОГОО'),
-('Delivery Service', 'Хүргэлтийн үйлчилгээ', '21. CUSTOMER SERVICE / ХЭРЭГЛЭГЧИЙН ҮЙЛЧИЛГЭЭ'),
-('Diagnosis/Diagnostics', 'Оношлогоо', '2. DIAGNOSTICS / ОНОШЛОГОО'),
-('Diagnostic Computer', 'Оношлогооны компьютер', '18. FACILITY & EQUIPMENT / ТОНОГ ТӨХӨӨРӨМЖ'),
-('Discounted Price', 'Хөнгөлөлттэй үнэ', '15. WARRANTY / БАТАЛГАА'),
-('Driveshaft', 'Гүүшин', '6. SUSPENSION / ЯВАХ ЭД АНГИ, DRIVETRAIN'),
-('EGR Valve Cleaning', '**EGR цэвэрлэх**', '4. MAINTENANCE ITEMS, 9. ENGINE COMPONENTS / ХӨДӨЛГҮҮР'),
-('EPS Repair', 'Цахилгаан рулийн аппаратын засвар', '23. ELECTRIC POWER STEERING / ЦАХИЛГААН РУЛЬ'),
-('Electric Power Steering', 'Цахилгаан рулийн систем', '23. ELECTRIC POWER STEERING / ЦАХИЛГААН РУЛЬ'),
-('Electrical System', 'Цахилгаан', '7. ELECTRICAL / ЦАХИЛГААН, ELECTRICAL'),
-('Engine Cover', 'Хучлага', '1. SERVICE TYPES / ҮЙЛЧИЛГЭЭНИЙ ТӨРӨЛ'),
-('Engine Diagnosis', 'Мотор оношлогоо', '2. DIAGNOSTICS / ОНОШЛОГОО'),
-('Engine repair', 'Хөдөлгүүр засвар', '1. SERVICE TYPES / ҮЙЛЧИЛГЭЭНИЙ ТӨРӨЛ, R. CAR MAINTENANCE & SERVICE TERMS'),
-('Extended Warranty', 'Сунгасан баталгаа', '15. WARRANTY / БАТАЛГАА'),
-('Factory Warranty', 'Үйлдвэрийн баталгаа', '15. WARRANTY / БАТАЛГАА'),
-('Free of Charge', 'Үнэ төлбөргүй', '15. WARRANTY / БАТАЛГАА'),
-('Fuel Filter', 'Түлшний шүүгч', '8. FILTERS / ШҮҮЛТҮҮР, CORE_PARTS'),
-('Fuel System Cleaning', 'Бензин системийн цэвэрлэгээ', '9. ENGINE COMPONENTS / ХӨДӨЛГҮҮР'),
-('Gas Analyzer', 'Хийн анализатор', '2. DIAGNOSTICS / ОНОШЛОГОО'),
-('Headlight', 'Их гэрэл', '7. ELECTRICAL / ЦАХИЛГААН, CORE_PARTS'),
-('Headlight Adjustment', 'Их гэрлийн тусгалын тохиргоо', '7. ELECTRICAL / ЦАХИЛГААН'),
-('Heater Blower Motor', 'Үлээгч сэнсний мотор', '11. HEATING & AC / ХАЛААЛТ КОНДИШН'),
-('Heating System', 'Халаалтын систем', '11. HEATING & AC / ХАЛААЛТ КОНДИШН'),
-('Horn', 'Дуут дохио', '7. ELECTRICAL / ЦАХИЛГААН, CORE_PARTS'),
-('Hub Bearing', 'Булны бэхэлгээ', '6. SUSPENSION / ЯВАХ ЭД АНГИ'),
-('Hyundai Kia Service', 'Хьюндай Киа сервис', '27. HYUNDAI/KIA DEALER TERMS / ХЬЮНДАЙ КИА ДИЛЕРИЙН НЭР ТОМЬ'),
-('Injector Cleaning', 'Инжектор цэвэрлэгээ', '9. ENGINE COMPONENTS / ХӨДӨЛГҮҮР'),
-('Inspection', 'оношилгоо', 'R. CAR MAINTENANCE & SERVICE TERMS'),
-('Inspection Checkpoint', 'Авто үзлэг оношлогооны төв', '2. DIAGNOSTICS / ОНОШЛОГОО'),
-('Inspection Service', 'Үзлэгийн үйлчилгээ', '20. SERVICE PACKAGES / ҮЙЛЧИЛГЭЭНИЙ БАГЦ'),
-('Interior Soundproofing', 'Салоны дуу дарах', '1. SERVICE TYPES / ҮЙЛЧИЛГЭЭНИЙ ТӨРӨЛ'),
-('Labor Fee', 'Ажлын хөлс', '17. PRICING / ҮНЭ ТӨЛБӨР'),
-('Lift', 'Лифт', '18. FACILITY & EQUIPMENT / ТОНОГ ТӨХӨӨРӨМЖ'),
-('Lift/Lowering Service', 'Авто өндөрлөгөө', '1. SERVICE TYPES / ҮЙЛЧИЛГЭЭНИЙ ТӨРӨЛ'),
-('Luftometer', 'Люфтометр', '2. DIAGNOSTICS / ОНОШЛОГОО'),
-('Major Repair', 'Их засвар', '1. SERVICE TYPES / ҮЙЛЧИЛГЭЭНИЙ ТӨРӨЛ'),
-('Manometer', 'Манометр', '2. DIAGNOSTICS / ОНОШЛОГОО'),
-('Minor Repair', 'Бага засвар', '1. SERVICE TYPES / ҮЙЛЧИЛГЭЭНИЙ ТӨРӨЛ'),
-('Mobile Service Team', 'Явуулын засварын баг', '18. FACILITY & EQUIPMENT / ТОНОГ ТӨХӨӨРӨМЖ'),
-('Negative Terminal', 'Хасах шонг', '7. ELECTRICAL / ЦАХИЛГААН'),
-('Night Rate', 'Шөнийн тариф', '17. PRICING / ҮНЭ ТӨЛБӨР'),
-('Noise Meter', 'Шуугиан хэмжигч', '2. DIAGNOSTICS / ОНОШЛОГОО'),
-('OBD-II Scanner', 'OBD-II сканнер', '18. FACILITY & EQUIPMENT / ТОНОГ ТӨХӨӨРӨМЖ'),
-('Oil Change Labor Free', 'Тос солих ажлын хөлс 0₮', '17. PRICING / ҮНЭ ТӨЛБӨР'),
-('Oil change', 'Тос солих', '3. OIL & FLUIDS / ТОС ТОСОЛГОО, E. OWNERSHIP COST TERMS'),
-('One-Stop Service', 'Нэг цэгийн үйлчилгээ', '21. CUSTOMER SERVICE / ХЭРЭГЛЭГЧИЙН ҮЙЛЧИЛГЭЭ'),
-('Original Parts Warranty', 'Оригинал сэлбэгийн баталгаа', '15. WARRANTY / БАТАЛГАА'),
-('Other Services', 'Бусад', '1. SERVICE TYPES / ҮЙЛЧИЛГЭЭНИЙ ТӨРӨЛ'),
-('Paint Booth', 'Будгийн камер', '18. FACILITY & EQUIPMENT / ТОНОГ ТӨХӨӨРӨМЖ'),
-('Paint Sales & Ordering', 'Будгийн худалдаа захиалга', '1. SERVICE TYPES / ҮЙЛЧИЛГЭЭНИЙ ТӨРӨЛ'),
-('Painting Service', 'Будах үйлчилгээ', '1. SERVICE TYPES / ҮЙЛЧИЛГЭЭНИЙ ТӨРӨЛ'),
-('Parking Brake', 'Гар тоормос', '4. BRAKES / ТОРМОС, CORE_PARTS'),
-('Parts Store', 'Сэлбэгийн дэлгүүр', '27. HYUNDAI/KIA DEALER TERMS / ХЬЮНДАЙ КИА ДИЛЕРИЙН НЭР ТОМЬ, TERMINOLOGY'),
-('Positive Terminal', 'Нэмэх шонг', '7. ELECTRICAL / ЦАХИЛГААН'),
-('Post-Warranty Service', 'Баталгаа дууссаны дараах үйлчилгээ', '15. WARRANTY / БАТАЛГАА'),
-('Powerrex Equipment', 'Powerrex төхөөрөмж', '27. HYUNDAI/KIA DEALER TERMS / ХЬЮНДАЙ КИА ДИЛЕРИЙН НЭР ТОМЬ'),
-('Radiator', 'Радиатор', '10. COOLING / ХӨРГӨЛТ, CORE_PARTS'),
-('Rear Window', 'Арын шил', '14. WINDSHIELD & WIPERS / ШИЛ АРЧИГЧ, CORE_PARTS'),
-('Regular maintenance', 'тогтмол үйлчилгээ', 'R. CAR MAINTENANCE & SERVICE TERMS'),
-('Remote Start System', 'Цагийн асаалтын систем', '25. ADDITIONAL SERVICES / НЭМЭЛТ ҮЙЛЧИЛГЭЭ'),
-('Repair and Service', 'Засвар үйлчилгээ', '1. SERVICE TYPES / ҮЙЛЧИЛГЭЭНИЙ ТӨРӨЛ'),
-('Roadside/Mobile Repair', 'Явуулын засвар үйлчилгээ', '1. SERVICE TYPES / ҮЙЛЧИЛГЭЭНИЙ ТӨРӨЛ'),
-('Routine/Maintenance Service', 'Урсгал үйлчилгээ', '1. SERVICE TYPES / ҮЙЛЧИЛГЭЭНИЙ ТӨРӨЛ'),
-('Running Gear', 'Явах эд анги', '6. SUSPENSION / ЯВАХ ЭД АНГИ'),
-('Running Gear Diagnosis', 'Явах эд ангийн оношлогоо', '2. DIAGNOSTICS / ОНОШЛОГОО'),
-('Scratch repair', 'сэв арилгах', 'R. CAR MAINTENANCE & SERVICE TERMS'),
-('Seasonal Tire Change', 'Дугуй шилжүүлэх', '5. TIRES & WHEELS / ДУГУЙ'),
-('Seat Cover', 'Машины бүтээлэг', '25. ADDITIONAL SERVICES / НЭМЭЛТ ҮЙЛЧИЛГЭЭ, ACCESSORIES'),
-('Serpentine Belt', '**Жийп ремень**', '4. MAINTENANCE ITEMS, 9. ENGINE COMPONENTS / ХӨДӨЛГҮҮР'),
-('Service A / Basic', 'A үйлчилгээ', '20. SERVICE PACKAGES / ҮЙЛЧИЛГЭЭНИЙ БАГЦ'),
-('Service Appointment', 'Цаг захиалга', '21. CUSTOMER SERVICE / ХЭРЭГЛЭГЧИЙН ҮЙЛЧИЛГЭЭ'),
-('Service B / Full', 'B үйлчилгээ', '20. SERVICE PACKAGES / ҮЙЛЧИЛГЭЭНИЙ БАГЦ'),
-('Service Bay/Post', 'Пост', '18. FACILITY & EQUIPMENT / ТОНОГ ТӨХӨӨРӨМЖ'),
-('Service C / Major', 'C үйлчилгээ', '20. SERVICE PACKAGES / ҮЙЛЧИЛГЭЭНИЙ БАГЦ'),
-('Service Capacity', 'Хүчин чадал', '18. FACILITY & EQUIPMENT / ТОНОГ ТӨХӨӨРӨМЖ'),
-('Service Channel', 'Суваг', '18. FACILITY & EQUIPMENT / ТОНОГ ТӨХӨӨРӨМЖ'),
-('Service Contract', 'Техник үйлчилгээний гэрээ', '18. FACILITY & EQUIPMENT / ТОНОГ ТӨХӨӨРӨМЖ'),
-('Service Fee', 'Үйлчилгээний үнэ', '17. PRICING / ҮНЭ ТӨЛБӨР'),
-('Service Price List', 'Үнийн санал', '17. PRICING / ҮНЭ ТӨЛБӨР'),
-('Shock Absorber', '**Амортизатор**', '4. MAINTENANCE ITEMS, 6. SUSPENSION / ЯВАХ ЭД АНГИ'),
-('Soot Meter', 'Тортог хэмжигч', '2. DIAGNOSTICS / ОНОШЛОГОО'),
-('Spare Tire', '**Нөөц дугуй**', '4. MAINTENANCE ITEMS, 5. TIRES & WHEELS / ДУГУЙ'),
-('Spark Plug Gap', 'Свечэний зай', '9. ENGINE COMPONENTS / ХӨДӨЛГҮҮР'),
-('Speedometer', 'Хурд хэмжүүр', '7. ELECTRICAL / ЦАХИЛГААН'),
-('Spring', '**Пружин**', '4. MAINTENANCE ITEMS, 6. SUSPENSION / ЯВАХ ЭД АНГИ'),
-('Starter Motor', 'Стартер', '7. ELECTRICAL / ЦАХИЛГААН, CORE_PARTS'),
-('Steering Knuckle', 'Шарниер', '6. SUSPENSION / ЯВАХ ЭД АНГИ'),
-('Steering Rack', 'Рулийн аппарат', '23. ELECTRIC POWER STEERING / ЦАХИЛГААН РУЛЬ'),
-('Steering Wheel Free Play', 'Жолооны хүрдний сул явалт', '23. ELECTRIC POWER STEERING / ЦАХИЛГААН РУЛЬ'),
-('Summer Technical Service', 'Зуны техник үйлчилгээ', '20. SERVICE PACKAGES / ҮЙЛЧИЛГЭЭНИЙ БАГЦ'),
-('Summer Tire', 'Зуны дугуй', '5. TIRES & WHEELS / ДУГУЙ, TIRES'),
-('Tensioner Pulley', 'Чангалагч ролик', '9. ENGINE COMPONENTS / ХӨДӨЛГҮҮР'),
-('Thermostat', 'Термостат', '10. COOLING / ХӨРГӨЛТ'),
-('Throttle Body Cleaning', '**Холимгийн хаалт цэвэрлэх**', '4. MAINTENANCE ITEMS, 9. ENGINE COMPONENTS / ХӨДӨЛГҮҮР'),
-('Tie Rod', 'Тяга', '6. SUSPENSION / ЯВАХ ЭД АНГИ, DRIVETRAIN'),
-('Timing Belt', '**Цуваа ремень**', '4. MAINTENANCE ITEMS, 9. ENGINE COMPONENTS / ХӨДӨЛГҮҮР'),
-('Tire', '**Дугуй**', '4. MAINTENANCE ITEMS, 5. TIRES & WHEELS / ДУГУЙ'),
-('Tire Changer', 'Дугуй угсрах тоноглол', '18. FACILITY & EQUIPMENT / ТОНОГ ТӨХӨӨРӨМЖ'),
-('Tire Mounting/Dismounting', 'Дугуй задалж угсрах', '5. TIRES & WHEELS / ДУГУЙ'),
-('Tire Pressure', '**Дугуйн даралт**', '4. MAINTENANCE ITEMS, 5. TIRES & WHEELS / ДУГУЙ'),
-('Tire Rotation', '**Дугуй чирэх**', '4. MAINTENANCE ITEMS, 5. TIRES & WHEELS / ДУГУЙ'),
-('Tire Sales', 'Дугуй худалдаа', '5. TIRES & WHEELS / ДУГУЙ'),
-('Tire change', 'дугуй солих', 'R. CAR MAINTENANCE & SERVICE TERMS'),
-('Turn Signal', 'Эргэх дохио', '7. ELECTRICAL / ЦАХИЛГААН, CORE_PARTS'),
-('Waiting Room', 'Хүлээлгийн өрөө', '18. FACILITY & EQUIPMENT / ТОНОГ ТӨХӨӨРӨМЖ'),
-('Warranty', 'Баталгаа', '15. WARRANTY / БАТАЛГАА'),
-('Warranty Card', 'Баталгааны хуудас', '15. WARRANTY / БАТАЛГАА'),
-('Warranty Expired', 'Баталгаа дууссан', '15. WARRANTY / БАТАЛГАА'),
-('Warranty Period', 'Баталгаат хугацаа', '15. WARRANTY / БАТАЛГАА'),
-('Warranty Repair', 'Баталгаат засвар', '15. WARRANTY / БАТАЛГАА'),
-('Warranty Valid', 'Баталгаа хүчинтэй', '15. WARRANTY / БАТАЛГАА'),
-('Washer Nozzle', 'Шил угаагч хэрэгсэл', '14. WINDSHIELD & WIPERS / ШИЛ АРЧИГЧ'),
-('Water Pump', 'Усны насос', '10. COOLING / ХӨРГӨЛТ'),
-('Wheel Alignment Machine', 'Тэнхлэг тохиргооны багаж', '18. FACILITY & EQUIPMENT / ТОНОГ ТӨХӨӨРӨМЖ'),
-('Wheel Balancing', 'Баланс тохиргоо', '5. TIRES & WHEELS / ДУГУЙ'),
-('Wheel Rim', 'Обуд', '5. TIRES & WHEELS / ДУГУЙ'),
-('Wheel alignment', '**Тэнхлэг тохиргоо**', '4. MAINTENANCE ITEMS, 5. TIRES & WHEELS / ДУГУЙ'),
-('Windshield', 'Салхины шил', '14. WINDSHIELD & WIPERS / ШИЛ АРЧИГЧ, CORE_PARTS'),
-('Wiring Harness', 'Утасны сүүж', '7. ELECTRICAL / ЦАХИЛГААН, ELECTRICAL'),
-('AC Check', '**Кондиционер шалгах**', '4. MAINTENANCE ITEMS'),
-('Air Flow Sensor', '**Агаар урсгал мэдрэгч**', '4. MAINTENANCE ITEMS'),
-('Alternator Check', '**Генератор шалгах**', '4. MAINTENANCE ITEMS'),
-('Alternator/Generator', '**Генератор**', '4. MAINTENANCE ITEMS'),
-('Annually', '**Жил бүр**', '5. SERVICE INTERVALS'),
-('Battery Check', '**Аккумулятор шалгах**', '4. MAINTENANCE ITEMS'),
-('Brake Inspection', '**Тормос шалгах**', '4. MAINTENANCE ITEMS'),
-('Computer Diagnostics', '**Компьютер оношлогоо**', '5. SERVICE INTERVALS'),
-('Door Seal', '**Хаалганы резин**', '4. MAINTENANCE ITEMS'),
-('Every 10,000 km', '**10,000 км тутам**', '19. MAINTENANCE SCHEDULES / ТОХИРУУЛАХ ХУГАЦАА, 5. SERVICE INTERVALS'),
-('Every 100,000 km', '**100,000 км тутам**', '5. SERVICE INTERVALS'),
-('Every 2,000 km', '**2000 км тутам**', '5. SERVICE INTERVALS'),
-('Every 20,000 km', '**20,000 км тутам**', '19. MAINTENANCE SCHEDULES / ТОХИРУУЛАХ ХУГАЦАА, 5. SERVICE INTERVALS'),
-('Every 30,000 km', '**30,000 км тутам**', '19. MAINTENANCE SCHEDULES / ТОХИРУУЛАХ ХУГАЦАА, 5. SERVICE INTERVALS'),
-('Every 35,000-40,000 km', '**35,000-40,000 км тутам**', '19. MAINTENANCE SCHEDULES / ТОХИРУУЛАХ ХУГАЦАА, 5. SERVICE INTERVALS'),
-('Every 40,000-60,000 km', '40,000 – 60,000 км тутамд', '19. MAINTENANCE SCHEDULES / ТОХИРУУЛАХ ХУГАЦАА'),
-('Every 5,000 km', '**5000 км тутам**', '19. MAINTENANCE SCHEDULES / ТОХИРУУЛАХ ХУГАЦАА, 5. SERVICE INTERVALS'),
-('Every 50,000 km', '**50,000 км тутам**', '5. SERVICE INTERVALS'),
-('Every 6 Months', '**6 сар тутам**', '5. SERVICE INTERVALS'),
-('Every 60,000 km', '**60,000 км тутам**', '5. SERVICE INTERVALS'),
-('Every 60,000-80,000 km', '60,000 – 80,000 км тутамд', '19. MAINTENANCE SCHEDULES / ТОХИРУУЛАХ ХУГАЦАА'),
-('Every 7 Days', '**7 хоног бүр**', '5. SERVICE INTERVALS'),
-('Fuel Injector Cleaning', '**Форсунк цэвэрлэх**', '4. MAINTENANCE ITEMS'),
-('Full Service', '**Бүрэн үйлчилгээ**', '5. SERVICE INTERVALS'),
-('Generator/Alternator Belt', '**Генераторын оосрон дамжуулга**', '4. MAINTENANCE ITEMS'),
-('Headlight Check', '**Гэрэл шалгах**', '4. MAINTENANCE ITEMS'),
-('Ignition Coil', '**Катушка**', '4. MAINTENANCE ITEMS, ELECTRICAL'),
-('Injector', '**Форсунк**', '4. MAINTENANCE ITEMS'),
-('Intake Manifold', '**Холимгийн хаалт буюу коллектор**', '4. MAINTENANCE ITEMS'),
-('Lift/Jack', '**Домкрат**', '4. MAINTENANCE ITEMS'),
-('Maintenance Interval', 'Солих хугацаа', '19. MAINTENANCE SCHEDULES / ТОХИРУУЛАХ ХУГАЦАА'),
-('Oil Change Service', '**Тос тосолгоо**', '4. MAINTENANCE ITEMS'),
-('PCV Valve', '**PCV хавхлага**', '4. MAINTENANCE ITEMS'),
-('Preventive Inspection', '**Урьдчилан сэргийлэх үзлэг**', '5. SERVICE INTERVALS'),
-('Routine Maintenance', '**Урсгал засвар**', '4. MAINTENANCE ITEMS'),
-('Running Gear Diagnostics', '**Явах эд ангийн оношлогоо**', '5. SERVICE INTERVALS'),
-('Service by Mileage', '**Гүйлтээр**', '5. SERVICE INTERVALS'),
-('Service by Time', '**Хугацаагаар**', '5. SERVICE INTERVALS'),
-('Spark Plug Replacement', '**Свэч солих**', '4. MAINTENANCE ITEMS'),
-('Spring Service', '**Хаврын техник үйлчилгээ**', '5. SERVICE INTERVALS'),
-('Stabilizer Bar Link', '**Тогтууруулагч штанг**', '4. MAINTENANCE ITEMS'),
-('Summer Service', '**Зуны техник үйлчилгээ**', '5. SERVICE INTERVALS'),
-('Tie Rod End', '**Татлагын хөндлөнгө**', '4. MAINTENANCE ITEMS'),
-('Tire Inspection', '**Дугуй шалгах**', '4. MAINTENANCE ITEMS'),
-('Tread Depth', '**Дугуйн хээний гүн**', '4. MAINTENANCE ITEMS'),
-('Triple-Layer Cabin Filter', '**Гурван давхар салон шүүгч**', '4. MAINTENANCE ITEMS'),
-('Wheel Balance', '**Дугуйн тэнцвэржүүлэлт**', '4. MAINTENANCE ITEMS'),
-('Winter Service', '**Өвлийн техник үйлчилгээ**', '5. SERVICE INTERVALS'),
-('Wiper Check', '**Шил арчигч шалгах**', '4. MAINTENANCE ITEMS'),
-('Air suspension', 'Агаарын дүүжин', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS, MODIFICATION'),
-('Body kit', 'Боди кит', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS, MODIFICATION'),
-('Brake upgrade', 'Тоормос сайжруулах', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS'),
-('Chip tuning', 'Чип тохиргоо', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS, MODIFICATION'),
-('Cold air intake', 'Хүйтэн агаар оруулга', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS, MODIFICATION'),
-('Daily driver', 'Өдөр тутмын унаа', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS'),
-('Dash cam', 'Бичлэгийн камер', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS'),
-('High mileage', 'Их гүйлт', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS'),
-('LED lights', 'LED гэрэл', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS, MODIFICATION'),
-('Low mileage', 'Бага гүйлт', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS'),
-('Mercedes', 'Мерс', 'CATEGORY 2: BRAND ABBREVIATIONS & SHORTENED NAMES'),
-('Mouse (Prius C nickname)', 'Хулгана', 'CATEGORY 1: CAR NICKNAMES'),
-('Non-smoker', 'Тамхи татдаггүй', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS'),
-('People''s Car', 'Ард түмний унаа', 'CATEGORY 1: CAR NICKNAMES'),
-('Pet-friendly', 'Амьтан тээвэрлээгүй', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS'),
-('Project car', 'Засвартай машин', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS'),
-('Senior driver', 'Ахмар жолооч', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS'),
-('Single owner', 'Нэг эзэнтэй', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS'),
-('Sound system', 'Дууны систем', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS'),
-('Stanced/Lowered', 'Доошлох', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS'),
-('Swap/Exchange', 'Солино', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS'),
-('Tinted windows', 'Хар шил', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS'),
-('Turbo', 'Турбо', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS'),
-('Weekend car', 'Амралтын машин', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS'),
-('Woman driver', 'Эмэгтэй жолооч', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS'),
-('Wrap', 'Өнгө өөрчлөх', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS'),
-('Xenon lights', 'Ксенон гэрэл', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS'),
-('4WD system', '4н дугуйн хөтлөгч', 'DRIVETRAIN'),
-('Aftermarket/copy parts', 'Хуулбар сэлбэг', 'TERMINOLOGY'),
-('Air Freshener', 'Машины агааржуулалт', '16. PARTS / СЭЛБЭГ, ACCESSORIES'),
-('All-season tire', 'Дөрвөн улирлын дугуй', 'TIRES'),
-('Auto Chemicals', 'Авто хими', '16. PARTS / СЭЛБЭГ, CHEMICALS'),
-('Auto repair', 'Авто засвар', 'TERMINOLOGY'),
-('Auto spare parts', 'Авто сэлбэг', 'TERMINOLOGY'),
-('Axle', 'Тэнхлэг', 'DRIVETRAIN'),
-('Body/frame', 'Кузов, их бие', 'BODY'),
-('Brake', 'Тоормос', 'CATEGORY 5: DRIVING SLANG & ACTIONS, CORE_PARTS'),
-('Bucket teeth', 'Шанаганы шүд', 'HEAVY'),
-('Bumper guard', 'Машины буфер', 'ACCESSORIES'),
-('Bushing', 'Втулк', 'HEAVY'),
-('Cabin filter', 'Салоны шүүгч', 'CORE_PARTS'),
-('Car GPS', 'Машины GPS', 'ACCESSORIES'),
-('Car accessories', 'Автомашины хэрэгсэл', 'ACCESSORIES'),
-('Car alarm', 'Машины хөглөгч', 'ACCESSORIES'),
-('Car audio', 'Машины хөгжим', 'ACCESSORIES'),
-('Car blanket', 'Машины хөнжил', 'ACCESSORIES'),
-('Car cover', 'Машины бүрээс', 'ACCESSORIES'),
-('Car decoration', 'Автомашины чимэглэл', 'ACCESSORIES'),
-('Car fridge', 'Машины хөргүүр', 'ACCESSORIES'),
-('Car jack', 'Дугуй өргөгч', 'ACCESSORIES'),
-('Car modification', 'Машин өөрчлөх', 'MODIFICATION'),
-('Car tuning', 'Машины тюнинг', 'MODIFICATION'),
-('Car vacuum', 'Машины тоос сорогч', 'ACCESSORIES'),
-('Coilovers', 'Койловер', 'MODIFICATION'),
-('Control arm', 'Тяга', 'DRIVETRAIN'),
-('Convertible roof', 'Бүрээсэн дээвэр', 'CORE_PARTS'),
-('Dashboard', 'Хянах самбар', 'CORE_PARTS'),
-('Dashcam', 'Машины камер', 'ACCESSORIES'),
-('Differential', 'Зөрүүгүй төвөгшөгч', 'DRIVETRAIN'),
-('Diffuser', 'Диффузор', 'MODIFICATION'),
-('Dismantled parts', 'Задаргаа', 'TERMINOLOGY'),
-('Distributor', 'Таслан хуваарилагч', 'CORE_PARTS'),
-('Distributor valve', 'Хувиарлагч', 'HEAVY'),
-('Door', 'Хаалга', 'CORE_PARTS'),
-('Door protector', 'Хаалганы хамгаалалт', 'ACCESSORIES'),
-('Drive shaft', 'Дамжуулагч', 'HEAVY'),
-('Driver seat', 'Жолоочийн суудал', 'CORE_PARTS'),
-('ECU/Computer', 'Удирдлагын блок', 'ELECTRICAL'),
-('Emblem/badge', 'Тэмдэг', 'BODY'),
-('Exterior', 'Гадна тал', 'BODY'),
-('Fan belt', 'Сэнсний ремень', 'CORE_PARTS'),
-('Fender liner', 'Шаврын хаалт', 'BODY'),
-('Filter', 'Шүүр', 'HEAVY'),
-('Flap', 'Элгэвч', 'TIRES'),
-('Floor mat', 'Машины шалавч', 'ACCESSORIES'),
-('Fog light', 'Манангийн гэрэл', 'CORE_PARTS'),
-('Front axle', 'Урд тэнхлэг', 'DRIVETRAIN'),
-('Front fender', 'Урд хайрцаг', 'CORE_PARTS'),
-('Front lip', 'Губ', 'MODIFICATION'),
-('Fuel cap', 'Түлшний таг', 'CORE_PARTS'),
-('Fuel tank', 'Түлшний сав', 'CORE_PARTS'),
-('Gauge/meter', 'Хэмжүүр', 'CORE_PARTS'),
-('Gear', 'Араа', 'CORE_PARTS'),
-('Grille', 'Хаалга', 'BODY'),
-('Halogen lights', 'Халоген гэрэл', 'MODIFICATION'),
-('Handle', 'Бариул', 'BODY'),
-('Hazard lights', 'Ослын дохио', 'CORE_PARTS'),
-('Headrest', 'Суудлын дэр', 'CORE_PARTS'),
-('Heavy-duty tire', 'Даацын дугуй', 'TIRES'),
-('High beam', 'Холын гэрэл', 'CORE_PARTS'),
-('Hood/bonnet', 'Урд таг', 'CORE_PARTS'),
-('Hub', 'Гүпер', 'DRIVETRAIN'),
-('Hydraulic hose', 'Шланк', 'HEAVY'),
-('Hydraulic pump', 'Гидрийн насос', 'HEAVY'),
-('Inner tube', 'Олгой', 'TIRES'),
-('Intercooler', 'Интеркулер', 'MODIFICATION'),
-('Interior', 'Дотор тал', 'BODY'),
-('Jumper cables', 'Кабель', 'ACCESSORIES'),
-('Key programming', 'Машин түлхүүр задлах', 'MODIFICATION'),
-('Laser lights', 'Лазер гэрэл', 'MODIFICATION'),
-('Lift cylinder', 'Өргөхийн цилиндр', 'HEAVY'),
-('Lift kit', 'Машин өргөсгөх', 'MODIFICATION'),
-('Load index', 'Тээх чадварын индекс', 'TIRES'),
-('Lock', 'Цоож', 'BODY'),
-('Low beam', 'Ойрын гэрэл', 'CORE_PARTS'),
-('Lowering', 'Машин доошлуулах', 'MODIFICATION'),
-('Maintenance service', 'Үйлчилгээ', 'TERMINOLOGY'),
-('Matrix LED', 'Матриц LED', 'MODIFICATION'),
-('Molding/trim', 'Хүрээ', 'BODY'),
-('Mud flaps', 'Шаврын хаалт', 'ACCESSORIES'),
-('Noise insulator', 'Дуу чимээ тусгаарлагч', 'MODIFICATION'),
-('Oil dipstick', 'Тос хэмжигч', 'CORE_PARTS'),
-('Oil pan', 'Тосны тэвш', 'CORE_PARTS'),
-('Original/Genuine Parts', 'Оригинал сэлбэг', '16. PARTS / СЭЛБЭГ'),
-('Original/OEM parts', 'Оригинал сэлбэг', 'TERMINOLOGY'),
-('Parking card', 'Машины зогсоолын карт', 'ACCESSORIES'),
-('Parts Ordering', 'Сэлбэг захиалга', '16. PARTS / СЭЛБЭГ'),
-('Parts market', 'Сэлбэг зах', 'TERMINOLOGY'),
-('Phone mount', 'Машины утасны зөөлөвч', 'ACCESSORIES'),
-('Pin', 'Пальц', 'HEAVY'),
-('Piston', 'Бүлүүр', 'CORE_PARTS'),
-('Power steering pump', 'Рулийн гидрийн насос', 'CORE_PARTS'),
-('Racing seat', 'Спорт суудал', 'MODIFICATION'),
-('Rear axle', 'Хойд тэнхлэг', 'DRIVETRAIN'),
-('Rearview Mirror', 'Арыг харах толь', '24. SAFETY & REQUIRED EQUIPMENT / АЮУЛГҮЙ БАЙДАЛ, CORE_PARTS'),
-('Reducer', 'Редуктор', 'HEAVY'),
-('Replacement Parts', 'Солих сэлбэг', '16. PARTS / СЭЛБЭГ'),
-('Rim/wheel', 'Обуд', 'TIRES'),
-('Run-flat tire', 'Ослын гүйлттэй дугуй', 'TIRES'),
-('Running gear/drivetrain', 'Явах эд анги', 'DRIVETRAIN'),
-('Seatbelt', 'Хамгаалалтын бүс', 'CORE_PARTS'),
-('Sensor', 'Мэдрэгч', 'ELECTRICAL'),
-('Side mirror', 'Хажуугийн толь', 'CORE_PARTS'),
-('Side step', 'Гишгүүр', 'BODY'),
-('Sound deadening', 'Дуу чимээ багасгах', 'MODIFICATION'),
-('Speed index', 'Хурдны индекс', 'TIRES'),
-('Spoiler', 'Далавч', 'CORE_PARTS'),
-('Sport exhaust', 'Спорт яндан', 'MODIFICATION'),
-('Stabilizer bar', 'Тогтворжуулагч', 'DRIVETRAIN'),
-('Stage 1/2/3', 'Stage 1/2/3', 'MODIFICATION'),
-('Steering wheel cover', 'Жолооны хүрдний бүрээс', 'ACCESSORIES'),
-('Straight pipe', 'Прямоток', 'MODIFICATION'),
-('Strut bar', 'Распорка', 'MODIFICATION'),
-('Sunshade', 'Машины хөөсөнцөр', 'ACCESSORIES'),
-('Tire inflator', 'Дугуй хийгч', 'ACCESSORIES'),
-('Tire tread', 'Дугуйн хээ', 'TIRES'),
-('Towing rope', 'Чирэх олс', 'ACCESSORIES'),
-('Traction control', 'Тraction control', 'ELECTRICAL'),
-('Transfer case', 'Кроп', 'CORE_PARTS'),
-('Trunk lid', 'Арын таг', 'CORE_PARTS'),
-('Trunk/boot', 'Багааж', 'CORE_PARTS'),
-('Underglow', 'Доод гэрэлтүүлэг', 'MODIFICATION'),
-('Used parts', 'Хуучин сэлбэг', 'TERMINOLOGY'),
-('Valve', 'Хавхлаг', 'CORE_PARTS'),
-('Vinyl wrap', 'Винил бүрээс', 'MODIFICATION'),
-('Wheel bearing', 'Дугуйны холхивч', 'DRIVETRAIN'),
-('Wheel wrench', 'Дугуйны түлхүүр', 'ACCESSORIES'),
-('Window', 'Цонх', 'BODY'),
-('Window tinting', 'Цонх харлуулах', 'MODIFICATION'),
-('Automatic Transmission Fluid', 'Автомат кропны тос', '3. OIL & FLUIDS / ТОС ТОСОЛГОО'),
-('Brake cleaner', 'Тормоз цэвэрлэгч', 'CHEMICALS'),
-('Butane', '**Бутан**', '1. FUEL TYPES'),
-('CNG (Compressed Natural Gas)', '**Шахсан байгалийн хий**', '1. FUEL TYPES'),
-('CVT Fluid', '**CVT хурдны хайрцгийн тос**', '3. FLUIDS, 3. OIL & FLUIDS / ТОС ТОСОЛГОО'),
-('Car polish', 'Полиш', 'CHEMICALS'),
-('Car wax', 'Воск', 'CHEMICALS'),
-('Cetane Number', '**Цетаны тоо**', '1. FUEL TYPES'),
-('Clutch Fluid', '**Авцуулах холбооны шингэн**', '3. FLUIDS'),
-('Coolant/Antifreeze', '**Хөргөлтийн шингэн**', '3. FLUIDS, 3. OIL & FLUIDS / ТОС ТОСОЛГОО'),
-('DSG/DCT Fluid', 'DSG тос', '3. OIL & FLUIDS / ТОС ТОСОЛГОО'),
-('Diesel Fuel', '**Дизель түлш**', '1. FUEL TYPES'),
-('Differential Fluid', '**Ерөнхий дамжуулгын тос**', '3. FLUIDS'),
-('Differential/Reducer Oil', 'Редукторын тос', '3. OIL & FLUIDS / ТОС ТОСОЛГОО'),
-('Engine Oil', '**Хөдөлгүүрийн тос**', '2. ENGINE OILS, 3. OIL & FLUIDS / ТОС ТОСОЛГОО'),
-('Engine Oil Change', '**Тос солих**', '2. ENGINE OILS'),
-('Ethylene Glycol', '**Этиленгликоль**', '3. FLUIDS'),
-('Fluid Level Check', '**Шингэний түвшин шалгах**', '3. FLUIDS'),
-('Fluid Replacement', '**Шингэн солих**', '3. FLUIDS'),
-('Fuel Station/Gas Station', '**Шатахуун түгээх станц**', '1. FUEL TYPES'),
-('Full Synthetic Oil', 'Бүрэн синтетик тос', '3. OIL & FLUIDS / ТОС ТОСОЛГОО'),
-('Gasoline/Petrol', '**Бензин**', '1. FUEL TYPES'),
-('Gear Oil', '**Араа тос**', '3. FLUIDS'),
-('Grease', '**Тослох тос**', '3. FLUIDS'),
-('Green Coolant', '**Ногоон хөргөлтийн шингэн**', '3. FLUIDS'),
-('Household Gas', '**Ахуйн хий**', '1. FUEL TYPES'),
-('Hydraulic Fluid', '**Гидравлик шингэн**', '3. FLUIDS'),
-('Hydraulic Steering Fluid', 'Гидрийн шингэн', '3. OIL & FLUIDS / ТОС ТОСОЛГОО'),
-('Injector cleaner', 'Форсунк цэвэрлэгч', 'CHEMICALS'),
-('LPG (Liquefied Petroleum Gas)', '**Шингэрүүлсэн нефтийн хий**', '1. FUEL TYPES'),
-('Long-Life Coolant', '**Урт хугацааны хөргөлтийн шингэн**', '3. FLUIDS'),
-('Lubrication Service', 'Тос тосолгоо', '3. OIL & FLUIDS / ТОС ТОСОЛГОО'),
-('Manual Transmission Fluid', 'Механик кропны тос', '3. OIL & FLUIDS / ТОС ТОСОЛГОО'),
-('Mineral Oil', 'Эрдсийн тос', '3. OIL & FLUIDS / ТОС ТОСОЛГОО'),
-('Octane Number/Rating', '**Октаны тоо**', '1. FUEL TYPES'),
-('Oil Filter', '**Тосны шүүлтүүр**', '2. ENGINE OILS, 3. OIL & FLUIDS / ТОС ТОСОЛГОО'),
-('Power Steering Fluid', '**Цахилгаан шингэн**', '3. FLUIDS'),
-('Premium Gasoline', '**Сайн бензин**', '1. FUEL TYPES'),
-('Propane', '**Пропан**', '1. FUEL TYPES'),
-('Red Coolant', '**Улаан хөргөлтийн шингэн**', '3. FLUIDS'),
-('Regular Gasoline', '**Энгийн бензин**', '1. FUEL TYPES'),
-('Sibiria Coolant', '**Sibiria хөргөлтийн шингэн**', '3. FLUIDS'),
-('Silicone Grease', '**Силикон тос**', '3. FLUIDS'),
-('Transfer Case Fluid', '**Хуваарилах хайрцгийн тос**', '3. FLUIDS'),
-('Transmission Fluid (ATF)', '**Автомат хурдны хайрцгийн шингэн**', '3. FLUIDS'),
-('Transmission Fluid Change', 'Кропны тос солих', '3. OIL & FLUIDS / ТОС ТОСОЛГОО'),
-('Transmission fluid', 'Хурдны хайрцагны тос', 'CHEMICALS'),
-('Viscosity Grade', '**Зуурамтгай чанар**', '2. ENGINE OILS, 3. OIL & FLUIDS / ТОС ТОСОЛГОО'),
-('Washer Fluid Reservoir', '**Шил угаагчийн шингэний сав**', '3. FLUIDS'),
-('Washer fluid', 'Шүүрийн шингэн', 'CHEMICALS'),
-('Windshield Washer Fluid', '**Шил угаагчийн шингэн**', '3. FLUIDS, 3. OIL & FLUIDS / ТОС ТОСОЛГОО'),
-('24-Hour Accident Hotline', '24 цагийн ослын дуудлагын үйлчилгээ', 'Category 1: Insurance Policy Types & Coverage'),
-('APR / Real Cost', 'Зээлийн бодит өртөг /жилээр/', 'Category 2: Loan & Financing Terms'),
-('Accident Report/Certificate', 'Ослын тодорхойлолт', 'Category 4: Insurance Claim Terms'),
-('Accident Scene', 'Ослын газар', 'Category 4: Insurance Claim Terms'),
-('Annual Interest Rate', 'Зээлийн хүү /жилээр/', 'Category 2: Loan & Financing Terms'),
-('Application Fee', 'Өргөдлийн хураамж', 'Category 2: Loan & Financing Terms'),
-('Auto Insurance', 'Авто даатгал', 'Category 1: Insurance Policy Types & Coverage'),
-('Borrower', 'Зээлдэгч', 'Category 2: Loan & Financing Terms'),
-('Car Leasing', 'Автомашины лизинг', 'Category 3: Leasing Terms'),
-('Car pawn loan', 'автомашин барьцаалсан зээл', 'H. FINANCE / LEASING TERMS'),
-('Claim Approved', 'Даатгал хүлээн зөвшөөрөх', 'Category 4: Insurance Claim Terms'),
-('Claim Denied', 'Даатгал татгалзах', 'Category 4: Insurance Claim Terms'),
-('Claim Documents', 'Нөхөн төлбөр бүрдүүлэх материал', 'Category 4: Insurance Claim Terms'),
-('Claim Investigation', 'Даатгал шалгах', 'Category 4: Insurance Claim Terms'),
-('Claim Processing Time', 'Нөхөн төлбөр олгох хугацаа', 'Category 4: Insurance Claim Terms'),
-('Co-borrower', 'Хамтран зээлдэгч', 'Category 2: Loan & Financing Terms'),
-('Collateral Asset', 'Барьцаа хөрөнгө', 'Category 2: Loan & Financing Terms'),
-('Comp Distribution (Life/Prop)', 'Нөхөн төлбөрийн хуваарилалт', 'Category 4: Insurance Claim Terms'),
-('Compensation Application', 'Нөхөн төлбөр хүссэн өргөдөл', 'Category 4: Insurance Claim Terms'),
-('Consumer/Operational Lease', 'Хэрэглээний лизинг', 'Category 3: Leasing Terms'),
-('Contract Cancellation', 'Гэрээ цуцлах', 'Category 5: General Financial & Legal Terms'),
-('Credit Information System', 'Зээлийн мэдээллийн сан', 'Category 2: Loan & Financing Terms'),
-('Credit Limit', 'Зээлийн эрх', 'Category 2: Loan & Financing Terms'),
-('Damage/Loss', 'Хохирол', 'Category 5: General Financial & Legal Terms'),
-('Dispute Resolution', 'Маргаан шийдвэрлэх', 'Category 5: General Financial & Legal Terms'),
-('Down Payment Percentage', 'Урьдчилгаа хувь', 'Category 2: Loan & Financing Terms'),
-('Driver''s Accident Risk', 'Жолоочийн гэнэтийн ослын эрсдэл', 'Category 1: Insurance Policy Types & Coverage'),
-('Driver''s Insurance Fund', 'Жолоочийн даатгалын сан', 'Category 1: Insurance Policy Types & Coverage'),
-('Driver''s License', 'Жолооны үнэмлэх', 'Category 4: Insurance Claim Terms'),
-('Early Repayment', 'Хугацаанаас өмнө төлөх', 'Category 2: Loan & Financing Terms'),
-('Exclusion/Not Covered', 'Хамрагдахгүй / Хасагдах', 'Category 5: General Financial & Legal Terms'),
-('Fault Determination', 'Гэм буруутай тал тогтоох', 'Category 4: Insurance Claim Terms'),
-('File a Claim', 'Даатгалд хандана', 'Category 4: Insurance Claim Terms'),
-('Financial Lease', 'Санхүүгийн түрээс', 'Category 3: Leasing Terms'),
-('Financial company', 'ББСБ', 'H. FINANCE / LEASING TERMS'),
-('Fire and Explosion Risk', 'Гал, дэлбэрэлтийн эрсдэл', 'Category 1: Insurance Policy Types & Coverage'),
-('Glass Risk', 'Шилний эрсдэл', 'Category 1: Insurance Policy Types & Coverage'),
-('Guarantee Fee', 'Батлан даалтын шимтгэл', 'Category 2: Loan & Financing Terms'),
-('Guarantee/Surety', 'Батлан даалт', 'Category 2: Loan & Financing Terms'),
-('Income Proof', 'Цалингийн тодорхойлолт', 'Category 2: Loan & Financing Terms'),
-('Installment Premium Payment', 'Төлбөр хувааж төлөх', 'Category 1: Insurance Policy Types & Coverage'),
-('Insurance Certificate', 'Даатгалын баталгаа', 'Category 1: Insurance Policy Types & Coverage'),
-('Insurance Claim/Incident', 'Даатгалын тохиолдол', 'Category 4: Insurance Claim Terms'),
-('Insurance Compensation', 'Даатгалын нөхөн төлбөр', 'Category 4: Insurance Claim Terms'),
-('Insurance Contract/Policy', 'Даатгалын гэрээ', 'Category 1: Insurance Policy Types & Coverage'),
-('Insurance Object/Subject', 'Даатгалын зүйл', 'Category 1: Insurance Policy Types & Coverage'),
-('Insurance Period/Term', 'Даатгалын хугацаа', 'Category 1: Insurance Policy Types & Coverage'),
-('Insurance Valuation', 'Даатгалын үнэлгээ', 'Category 1: Insurance Policy Types & Coverage'),
-('Insured/Policyholder', 'Даатгуулагч', 'Category 1: Insurance Policy Types & Coverage'),
-('Insurer', 'Даатгагч', 'Category 1: Insurance Policy Types & Coverage'),
-('Interest Rate Comparison', 'Банкуудын хүүг харьцуулах', 'Category 2: Loan & Financing Terms'),
-('Late Payment Penalty', 'Алданги', 'Category 2: Loan & Financing Terms'),
-('Leasing', 'лизинг', 'H. FINANCE / LEASING TERMS'),
-('Loan Agreement', 'Зээлийн гэрээ', 'Category 2: Loan & Financing Terms'),
-('Loan Amount', 'Зээлийн дүн', 'Category 2: Loan & Financing Terms'),
-('Loan Classification', 'Зээлийн ангилал', 'Category 2: Loan & Financing Terms'),
-('Loan Fee / Origination Fee', 'Зээлийн шимтгэл', 'Category 2: Loan & Financing Terms'),
-('Loan Repayment', 'Зээл төлөх', 'Category 2: Loan & Financing Terms'),
-('Loan Term/Duration', 'Зээлийн хугацаа', 'Category 2: Loan & Financing Terms'),
-('Loss Assessment', 'Хохирлын үнэлгээ', 'Category 4: Insurance Claim Terms'),
-('Loss Assessment Fee Coverage', 'Хохирлын үнэлгээний зардал', 'Category 1: Insurance Policy Types & Coverage'),
-('Loss Assessment Report', 'Хохирлын үнэлгээний тайлан', 'Category 4: Insurance Claim Terms'),
-('Mandatory Driver Liability Insurance', 'Жолоочийн хариуцлагын албан журмын даатгал', 'Category 1: Insurance Policy Types & Coverage'),
-('Mandatory Insurers Association', 'Албан журмын даатгагчдын холбоо', 'Category 1: Insurance Policy Types & Coverage'),
-('Monthly Interest Rate', 'Сарын хүү', 'Category 2: Loan & Financing Terms'),
-('Monthly interest', 'сарын хүү', 'H. FINANCE / LEASING TERMS'),
-('Natural Disaster Risk', 'Байгалийн эрсдэл', 'Category 1: Insurance Policy Types & Coverage'),
-('New Car Leasing (0 km)', 'Монголд яваагүй машины лизинг', 'Category 3: Leasing Terms'),
-('Non-Payment Conditions', 'Нөхөн төлбөр олгохгүй нөхцөл', 'Category 4: Insurance Claim Terms'),
-('Normal Loan', 'Хэвийн зээл', 'Category 2: Loan & Financing Terms'),
-('Package 1 (Basic)', 'Багц 1', 'Category 1: Insurance Policy Types & Coverage'),
-('Package 2 (Mid-tier)', 'Багц 2', 'Category 1: Insurance Policy Types & Coverage'),
-('Package 3 (Premium)', 'Багц 3', 'Category 1: Insurance Policy Types & Coverage'),
-('Parking Risk', 'Зогсоолд байрлуулсан үеийн эрсдэл', 'Category 1: Insurance Policy Types & Coverage'),
-('Partial Payment', 'Нөхөн төлбөрийг хэсэгчлэн олгох', 'Category 4: Insurance Claim Terms'),
-('Passport Photo (3x4)', '3х4 хэмжээтэй цээж зураг', 'Category 2: Loan & Financing Terms'),
-('Past Due Loan', 'Хугацаа хэтэрсэн зээл', 'Category 2: Loan & Financing Terms'),
-('Photo/Video Documentation', 'Ослын зураг, бичлэг', 'Category 4: Insurance Claim Terms'),
-('Plumbing/System Damage Risk', 'Сантехникийн гэмтлээс үүдэх эрсдэл', 'Category 1: Insurance Policy Types & Coverage'),
-('Policy Cancellation Refund', 'Даатгалын хураамж буцаалт', 'Category 5: General Financial & Legal Terms'),
-('Quick loan', 'шуурхай зээл', 'H. FINANCE / LEASING TERMS'),
-('Rapid Response Unit', 'Шуурхай алба', 'Category 1: Insurance Policy Types & Coverage'),
-('Real Estate Collateral', 'Үл хөдлөх хөрөнгө барьцаа', 'Category 2: Loan & Financing Terms'),
-('Repayment Schedule', 'Эргэн төлөлтийн хуваарь', 'Category 2: Loan & Financing Terms'),
-('Repossessed / Seized', 'банкны зээлтэй', 'H. FINANCE / LEASING TERMS'),
-('Risk', 'Эрсдэл', 'Category 5: General Financial & Legal Terms'),
-('Risk Transfer', 'Эрсдэл шилжүүлэх', 'Category 1: Insurance Policy Types & Coverage'),
-('Settlement Without Police', 'Цагдаагийн тодорхойлолтгүйгээр шийдвэрлэх', 'Category 4: Insurance Claim Terms'),
-('Small Parts Theft Risk', 'Жижиг эд ангийн хулгай дээрмийн эрсдэл', 'Category 1: Insurance Policy Types & Coverage'),
-('Social Insurance Book', 'Нийгмийн даатгалын дэвтэр', 'Category 2: Loan & Financing Terms'),
-('Substandard/Bad Loan', 'Муу зээл', 'Category 2: Loan & Financing Terms'),
-('Term Extension', 'Хугацаа сунгах', 'Category 2: Loan & Financing Terms'),
-('Theft/Robbery Risk (Body)', 'Их биеийн хулгай дээрмийн эрсдэл', 'Category 1: Insurance Policy Types & Coverage'),
-('Third-Party Victim', 'Хохирогч', 'Category 4: Insurance Claim Terms'),
-('Total Loss', 'Бүрэн сүйрэл', 'Category 4: Insurance Claim Terms'),
-('Total Payment', 'Нийт төлөх дүн', 'Category 2: Loan & Financing Terms'),
-('Traffic Accident Risk', 'Зам тээврийн хөдөлгөөний эрсдэл', 'Category 1: Insurance Policy Types & Coverage'),
-('Traffic Police', 'Замын цагдаа', 'Category 4: Insurance Claim Terms'),
-('Traffic Police Report', 'Замын цагдаагийн акт', 'Category 4: Insurance Claim Terms'),
-('Trust/Claims History', 'Итгэлийн түүх', 'Category 1: Insurance Policy Types & Coverage'),
-('Vehicle Registration Certificate', 'Тээврийн хэрэгслийн гэрчилгээ', 'Category 4: Insurance Claim Terms'),
-('Voluntary Driver''s Insurance', 'Жолоочийн хариуцлагын сайн дурын даатгал', 'Category 1: Insurance Policy Types & Coverage'),
-('With leasing', 'лизингтэй', 'H. FINANCE / LEASING TERMS'),
-('Witness', 'Гэрч', 'Category 4: Insurance Claim Terms'),
-('4WD', 'Бүх дугуйн хөтлөгч', 'T. COMMON ABBREVIATIONS & SHORT FORMS'),
-('AC', 'агааржуулалт', 'T. COMMON ABBREVIATIONS & SHORT FORMS'),
-('ATM', 'автомат', 'T. COMMON ABBREVIATIONS & SHORT FORMS'),
-('AWD', 'Бүх дугуй (AWD)', 'DRIVETRAIN, T. COMMON ABBREVIATIONS & SHORT FORMS'),
-('Brake Test Stand', 'Тормосны стенд', '22. STATE INSPECTION TERMS / УЛСЫН ҮЗЛЭГ'),
-('CC', 'куб см', 'T. COMMON ABBREVIATIONS & SHORT FORMS'),
-('Chassis Number', 'Аралын дугаар', '22. STATE INSPECTION TERMS / УЛСЫН ҮЗЛЭГ'),
-('Customs broker', 'гаалийн брокер', 'S. IMPORT / CUSTOMS / TAX TERMS'),
-('ESC/VSC', 'гулсалтийн эсрэг', 'T. COMMON ABBREVIATIONS & SHORT FORMS'),
-('Engine Number', 'Хөдөлгүүрийн дугаар', '22. STATE INSPECTION TERMS / УЛСЫН ҮЗЛЭГ'),
-('Excise by engine size', 'хөдөлгүүрийн багтаамжаар татвар', 'S. IMPORT / CUSTOMS / TAX TERMS'),
-('FWD', 'Урд хөтлөгч', 'T. COMMON ABBREVIATIONS & SHORT FORMS'),
-('HP', 'морины хүч', 'T. COMMON ABBREVIATIONS & SHORT FORMS'),
-('Import regulations', 'импортын дүрэм', 'S. IMPORT / CUSTOMS / TAX TERMS'),
-('LPG', 'хий/газ', 'T. COMMON ABBREVIATIONS & SHORT FORMS'),
-('MT', 'механик', 'T. COMMON ABBREVIATIONS & SHORT FORMS'),
-('Motor Vehicle', 'Тээврийн хэрэгсэл', '26. GOVERNMENT & LEGAL TERMS / ЗАСГИЙН ГАЗРЫН НЭР ТОМЬЁО'),
-('No age restriction', 'насны хязгааргүй', 'S. IMPORT / CUSTOMS / TAX TERMS'),
-('Owner''s Manual', 'Гарын авлага', '26. GOVERNMENT & LEGAL TERMS / ЗАСГИЙН ГАЗРЫН НЭР ТОМЬЁО'),
-('Pass/Fail Rating', 'Тэнцэх/Тэнцэхгүй үнэлгээ', '22. STATE INSPECTION TERMS / УЛСЫН ҮЗЛЭГ'),
-('Port of entry', 'боомт', 'S. IMPORT / CUSTOMS / TAX TERMS'),
-('RWD', 'Хойд хөтлөгч', 'T. COMMON ABBREVIATIONS & SHORT FORMS'),
-('Right-hand drive allowed', 'буруу хүрд зөвшөөрнө', 'S. IMPORT / CUSTOMS / TAX TERMS'),
-('Shipping', 'тээвэрлэлт', 'S. IMPORT / CUSTOMS / TAX TERMS'),
-('Special tax', 'Онцгой албан татвар', 'CATEGORY 4: PRICING & FINANCING SLANG, S. IMPORT / CUSTOMS / TAX TERMS'),
-('Technical Condition', 'Техникийн байдал', '26. GOVERNMENT & LEGAL TERMS / ЗАСГИЙН ГАЗРЫН НЭР ТОМЬЁО'),
-('Technical Specification', 'Техникийн тодохойлолт', '26. GOVERNMENT & LEGAL TERMS / ЗАСГИЙН ГАЗРЫН НЭР ТОМЬЁО'),
-('Total landed cost', 'нийт зардал', 'S. IMPORT / CUSTOMS / TAX TERMS'),
-('VAT', 'НӨАТ', 'S. IMPORT / CUSTOMS / TAX TERMS'),
-('VIN', 'вин/аралын дугаар', 'T. COMMON ABBREVIATIONS & SHORT FORMS'),
-('Vehicle Certificate', 'Тээврийн хэрэгслийн гэрчилгээ', '22. STATE INSPECTION TERMS / УЛСЫН ҮЗЛЭГ'),
-('Vehicle Registration Number', 'Улсын дугаар', '22. STATE INSPECTION TERMS / УЛСЫН ҮЗЛЭГ'),
-('km', 'км', 'T. COMMON ABBREVIATIONS & SHORT FORMS'),
-('Abundant', 'Элбэг', 'CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('Accident-damaged', 'Осолдсон', 'CATEGORY 3: CAR CONDITION SLANG'),
-('Bank loan', 'Банкны зээл', 'CATEGORY 4: PRICING & FINANCING SLANG'),
-('Bargain/Negotiate', 'Үнэ тохирох', 'CATEGORY 4: PRICING & FINANCING SLANG'),
-('Bronze membership', 'Bronze гишүүнчлэл', 'CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('Car dealer/Flipper', 'Ченж', 'CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('Car enthusiast', 'Авто сонирхогч', 'CATEGORY 9: COMMUNITY EXPRESSIONS & CULTURAL TERMS'),
-('Car listing site', 'Зарын сайт', 'CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('Cash', 'Бэлэн мөнгө', 'CATEGORY 4: PRICING & FINANCING SLANG'),
-('Cashmere season', 'Ноолуурын улирал', 'CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('Caught fire', 'Гал авалцсан', 'CATEGORY 3: CAR CONDITION SLANG'),
-('Cheap', 'Хямд', 'CATEGORY 4: PRICING & FINANCING SLANG'),
-('Clean (condition)', 'Цэвэр', 'CATEGORY 3: CAR CONDITION SLANG'),
-('Container shipping', 'Контейнер тээвэр', 'CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('Decline', 'Бууралт', 'CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('Deposit/Advance', 'Урьдчилгаа төлбөр', 'CATEGORY 4: PRICING & FINANCING SLANG'),
-('Discount period', 'Хямдрал', 'CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('Duty tax', 'Гаалийн татвар', 'CATEGORY 4: PRICING & FINANCING SLANG'),
-('Expensive', 'Үнэтэй', 'CATEGORY 4: PRICING & FINANCING SLANG'),
-('Floor it/Accelerate hard', 'Задлах', 'CATEGORY 5: DRIVING SLANG & ACTIONS'),
-('Garage-kept', 'Гаражны', 'CATEGORY 3: CAR CONDITION SLANG'),
-('Gold membership', 'Gold гишүүнчлэл', 'CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('Growth', 'Өсөлт', 'CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('Heavy (serious condition)', 'Хүнд', 'CATEGORY 3: CAR CONDITION SLANG'),
-('Hit the road', 'Замд гарах', 'CATEGORY 5: DRIVING SLANG & ACTIONS'),
-('Import', 'Импорт', 'CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('Installment payment', 'Хуваан төлөх', 'CATEGORY 4: PRICING & FINANCING SLANG'),
-('Let in/Merge', 'Оруулах', 'CATEGORY 5: DRIVING SLANG & ACTIONS'),
-('License plate', 'Улсын дугаар', 'CATEGORY 4: PRICING & FINANCING SLANG'),
-('Light (minor damage)', 'Хөнгөн', 'CATEGORY 3: CAR CONDITION SLANG'),
-('Manufactured year', 'Үйлдвэрлэсэн он', 'CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('Non-bank financial loan', 'ББСБ зээл', 'CATEGORY 4: PRICING & FINANCING SLANG'),
-('On lease', 'Лизингээр', 'CATEGORY 4: PRICING & FINANCING SLANG'),
-('On loan', 'Зээлээр', 'CATEGORY 4: PRICING & FINANCING SLANG'),
-('One-owner', 'Нэг гараар', 'CATEGORY 3: CAR CONDITION SLANG'),
-('Overtake', 'Авах', 'CATEGORY 5: DRIVING SLANG & ACTIONS'),
-('Pop price', 'Поп үнэ', 'CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('Price decrease', 'Үнийн бууралт', 'CATEGORY 4: PRICING & FINANCING SLANG'),
-('Price increase', 'Үнийн өсөлт', 'CATEGORY 4: PRICING & FINANCING SLANG'),
-('Province plate', 'Аймгийн дугаар', 'CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('Public (taxi/heavy use)', 'Нийтийн', 'CATEGORY 3: CAR CONDITION SLANG'),
-('Ready/Available', 'Бэлэн', 'CATEGORY 4: PRICING & FINANCING SLANG'),
-('Reasonable price', 'ТоХиромжтой', 'CATEGORY 4: PRICING & FINANCING SLANG'),
-('Regular listing', 'Энгийн зар', 'CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('Shiny/Glossy', 'Гялгар', 'CATEGORY 3: CAR CONDITION SLANG'),
-('Shortage', 'Хомсдол', 'CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('Silver membership', 'Silver гишүүнчлэл', 'CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('Special listing', 'Онцгой зар', 'CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('Special/Unique', 'Онцгой', 'CATEGORY 3: CAR CONDITION SLANG'),
-('Speed up', 'Хурдлах', 'CATEGORY 5: DRIVING SLANG & ACTIONS'),
-('Student season', 'Сурагчийн улирал', 'CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('Summer season', 'Зуны улирал', 'CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('Turn', 'Эргэх', 'CATEGORY 5: DRIVING SLANG & ACTIONS'),
-('UB plate', 'Улаанбаатарын дугаар', 'CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('Wet/Flooded', 'Усан', 'CATEGORY 3: CAR CONDITION SLANG'),
-('Winter season', 'Өвлийн улирал', 'CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('With push/start issues', 'Түлхэлтэй', 'CATEGORY 3: CAR CONDITION SLANG'),
-('Without any damage', 'Ямарч гэмтэлгүй', 'CATEGORY 3: CAR CONDITION SLANG'),
-('Without paint/repair needed', 'Будаг замаскгүй', 'CATEGORY 3: CAR CONDITION SLANG'),
-('Year imported', 'Орж ирсэн он', 'CATEGORY 6: CAR MARKET & TRADING SLANG'),
-('ABS', 'ABS', '24. SAFETY & REQUIRED EQUIPMENT / АЮУЛГҮЙ БАЙДАЛ, T. COMMON ABBREVIATIONS & SHORT FORMS'),
-('ABS system', 'ABS систем', 'ELECTRICAL'),
-('Airbag', 'Агаадал', '24. SAFETY & REQUIRED EQUIPMENT / АЮУЛГҮЙ БАЙДАЛ, ELECTRICAL'),
-('Autumn Service', '**Намрын техник үйлчилгээ**', '5. SERVICE INTERVALS'),
-('Blind spot mirror', 'Төрлийн толь', 'ACCESSORIES'),
-('Brake Disc/Rotor', '**Тормос диск**', '4. BRAKES / ТОРМОС, 4. MAINTENANCE ITEMS'),
-('Brake Fluid', '**Тормосны шингэн**', '3. FLUIDS, 3. OIL & FLUIDS / ТОС ТОСОЛГОО'),
-('Brake Fluid DOT 3', '**DOT-3 тормосны шингэн**', '3. FLUIDS'),
-('Brake Fluid DOT 4', '**DOT-4 тормосны шингэн**', '3. FLUIDS'),
-('Brake Fluid DOT 5', '**DOT-5 тормосны шингэн**', '3. FLUIDS'),
-('Brake Pad', '**Тормос колодка**', '4. BRAKES / ТОРМОС, 4. MAINTENANCE ITEMS'),
-('Brake Wear Indicator', '**Тормос элэгдлийн мэдрэгч**', '4. MAINTENANCE ITEMS'),
-('Brake pad/lining', 'Тоормосны наклад', 'CORE_PARTS'),
-('Brake pads', 'Тоормосны наклад', 'E. OWNERSHIP COST TERMS'),
-('Catalytic converter', '**Катализатор**', '12. EXHAUST / ЯНДАН, 4. MAINTENANCE ITEMS'),
-('DPF (Diesel Particulate Filter)', '**Дизель тоосонцрын шүүлтүүр**', '4. MAINTENANCE ITEMS'),
-('Emergency kit', 'Ослын иж бүрдэл', 'ACCESSORIES'),
-('Emissions test', 'Утаа шалгах', '22. STATE INSPECTION TERMS / УЛСЫН ҮЗЛЭГ, F. BUYING/SELLING PROCESS TERMS'),
-('Euro-2 Standard Fuel', '**Евро-2 стандартын шатахуун**', '1. FUEL TYPES'),
-('Euro-5 Standard Fuel', '**Евро-5 стандартын шатахуун**', '1. FUEL TYPES'),
-('Every 15,000 km', '**15,000 км тутам**', '5. SERVICE INTERVALS'),
-('Every 40,000 km', '40,000 км тутамд', '19. MAINTENANCE SCHEDULES / ТОХИРУУЛАХ ХУГАЦАА'),
-('Every 45,000 km', '**45,000 км тутам**', '5. SERVICE INTERVALS'),
-('Every 500 km', '**500 км тутам**', '5. SERVICE INTERVALS'),
-('Exhaust', 'Гарц', 'CATEGORY 10: ADDITIONAL COLLOQUIAL TERMS'),
-('Exhaust Inspection', '**Яндан шалгах**', '4. MAINTENANCE ITEMS'),
-('Exhaust System', '**Яндан систем**', '4. MAINTENANCE ITEMS'),
-('Exhaust pipe', 'Яндан', 'CORE_PARTS'),
-('Exhaust smoke', 'Ялгарах утаа', 'B. USED CAR INSPECTION TERMS'),
-('Exhaust/Muffler', 'Яндан', '12. EXHAUST / ЯНДАН'),
-('Fire Extinguisher', 'Гал унтраагуур', '24. SAFETY & REQUIRED EQUIPMENT / АЮУЛГҮЙ БАЙДАЛ, ACCESSORIES'),
-('First Aid Kit', 'Анхны тусламжийн иж бүрдэл', '24. SAFETY & REQUIRED EQUIPMENT / АЮУЛГҮЙ БАЙДАЛ, ACCESSORIES'),
-('Green Car Loan', 'Автомашины ногоон зээл', 'Category 2: Loan & Financing Terms'),
-('Muffler', 'Дуу намсгагч', 'CORE_PARTS'),
-('Road Traffic Safety', 'Замын хөдөлгөөний аюулгүй байдал', '26. GOVERNMENT & LEGAL TERMS / ЗАСГИЙН ГАЗРЫН НЭР ТОМЬЁО'),
-('Roadside Assistance (MASS)', 'MASS Замын хажуугийн үйлчилгээ', 'Category 1: Insurance Policy Types & Coverage'),
-('Roll cage', 'Хамгаалах хайрцаг', 'MODIFICATION'),
-('Safety', 'Аюулгүй байдал', 'A. BUYING DECISION TERMS'),
-('Safety Stand', '**Ивээс**', '4. MAINTENANCE ITEMS'),
-('Seat Belt', 'Хамгаалах бүс', '24. SAFETY & REQUIRED EQUIPMENT / АЮУЛГҮЙ БАЙДАЛ'),
-('Snow Brush/Ice Scraper', 'Цан үлээгүүр', '24. SAFETY & REQUIRED EQUIPMENT / АЮУЛГҮЙ БАЙДАЛ'),
-('Snow chain', 'Цасны гинж', 'ACCESSORIES'),
-('Studded tire', 'Хадаастай дугуй', 'TIRES'),
-('Winter Preparation Service', 'Өвлийн бэлтгэл үйлчилгээ', '20. SERVICE PACKAGES / ҮЙЛЧИЛГЭЭНИЙ БАГЦ'),
-('Winter Tire', 'Өвлийн дугуй', '5. TIRES & WHEELS / ДУГУЙ, TIRES'),
-('Winter preparation', 'Өвөлд бэлтгэх', 'E. OWNERSHIP COST TERMS, R. CAR MAINTENANCE & SERVICE TERMS'),
-('Winter tires', 'Өвлийн дугуй', 'D. CAR SEGMENT/CLASS TERMS'),
-('AC Recharge', 'Кондиционер цэнэглэх', '11. HEATING & AC / ХАЛААЛТ КОНДИШН'),
-('Battery Charging', 'Аккумулятор цэнэглэх', '7. ELECTRICAL / ЦАХИЛГААН'),
-('Car inverter', 'Хувьсагч', 'ACCESSORIES'),
-('Charge/Energy (Prius nickname)', 'Цэнэг', 'CATEGORY 1: CAR NICKNAMES'),
-('Charging Station', '**Цэнэглэх станц**', '1. FUEL TYPES'),
-('EV Rapid Charger', '**Түргэн цэнэглэгч**', '1. FUEL TYPES'),
-('Electric Charging', '**Цахилгаан цэнэглэх**', '1. FUEL TYPES'),
-('Electric advantages', 'Цахилгаан машины давуу тал', 'G. CAR REVIEW & COMPARISON TERMS'),
-('Electric disadvantages', 'Цахилгаан машины сул тал', 'G. CAR REVIEW & COMPARISON TERMS'),
-('Hybrid', 'Хайбрид', 'D. CAR SEGMENT/CLASS TERMS, D. CAR SPECIFICATION TERMS'),
-('Hybrid Repair Service', 'Hybrid засвар үйлчилгээ', '1. SERVICE TYPES / ҮЙЛЧИЛГЭЭНИЙ ТӨРӨЛ'),
-('Hybrid advantages', 'Хайбрид машины давуу тал', 'G. CAR REVIEW & COMPARISON TERMS'),
+-- Zurkhai prompts
+INSERT INTO service_prompts (category, tier, prompt_text) VALUES
+('zurkhai', 'standard', $$You are giving car purchase advice only, per Gandan Monastery зурхайч Д.Цогтбаатар standard and gogo.mn official цаг тооны бичиг. NO unrelated astrology content.
+Customer: born {{BIRTH_DATE}}, {{GENDER}}. Car: {{CAR_YEAR}}, color {{CAR_COLOR}}, plate {{CAR_PLATE}}.
+
+YOU MUST WRITE THESE 4 SECTIONS ONLY:
+1. 🎨 LUCKY CAR COLORS FOR YOU THIS YEAR:
+   - Top 2-3 lucky colors
+   - 1-2 unlucky colors, short reason why
+2. 📅 AUSPICIOUS DAYS TO BUY CAR:
+   - Top 3 best days in next 14 days
+   - 1-2 days to avoid
+3. 🔢 PLATE NUMBER LUCK:
+   - Lucky numbers for you
+   - Unlucky numbers to avoid
+4. ⚠️ THINGS TO NOTE:
+   - 2-3 simple things to watch for when buying
+   - Simple remedy if compatibility is not perfect
+
+RULES:
+- Only write these 4 sections, no other astrology content
+- No guesswork, no false information
+- Write in Mongolian, clear simple language, friendly Toyota service tone
+- Say "Insufficient information" if data is missing$$),
+('zurkhai', 'deep', $$You are giving deep car purchase advice only, per Gandan/gogo.mn standard. NO unrelated content.
+Customer: born {{BIRTH_DATE}}, {{GENDER}}. Car: {{CAR_YEAR}}, color {{CAR_COLOR}}, plate {{CAR_PLATE}}.
+
+YOU MUST WRITE THESE 5 SECTIONS ONLY:
+1. 🎨 FULL COLOR ADVICE:
+   - Top 3 lucky colors for next 3 years, ranked
+   - 2 colors to completely avoid, reason
+   - What to do if your preferred color is not lucky
+2. 📅 PURCHASE TIMING:
+   - Top 5 best days in next 30 days
+   - 2 most dangerous days to avoid
+   - Best time of day to pick up the car
+   - Best direction to drive the car home
+3. 🔢 FULL PLATE NUMBER ADVICE:
+   - Lucky number combinations for 3 years
+   - Neutral numbers
+   - Numbers to completely avoid
+4. 🚗 USAGE ADVICE:
+   - Things to watch for in first month
+   - Best months of the year to do maintenance
+   - 3 simple remedies to reduce negative effects
+5. 🔮 3-YEAR GENERAL FORECAST:
+   - Luck and success with the car
+   - Possible risks, how to avoid them
+
+RULES:
+- Only write car related content, NO life/career/love astrology
+- Only use Gandan/gogo.mn standard rules, no other sources
+- Follow Toyota 3S standard: accurate, friendly, trustworthy
+- No nonsense, only practical useful advice$$);
+
+-- Payment prompts
+INSERT INTO service_prompts (category, tier, prompt_text) VALUES
+('payment', 'sms_parse', $$You are a Khanbank transaction SMS parser. RETURN ONLY JSON, NO OTHER TEXT:
+{amount: number (transaction amount in MNT), phone: string (8-digit phone in transaction note, starts with 9, correct 1-2 digit typos), note: string (other text), date: ISO datetime, confidence: 0-1 number}
+Use null for missing fields. Example: {"amount":14900,"phone":"99111234","note":"carbot","date":"2026-07-26T14:30:00+08:00","confidence":0.97}
+SMS: {{SMS}}$$),
+('payment', 'match', $$You match payments to pending sessions. RETURN ONLY JSON:
+{action: "APPROVE"|"PARTIAL"|"WARN"|"REJECT", session_id: number|null, reason: 1-sentence reason}
+RULES:
+1. If phone has 1-2 digit typos, find closest matching session
+2. If amount differs by up to ±{{TOLERANCE}}₮, mark as PARTIAL
+3. Only consider sessions from last {{VALID_HOURS}} hours
+4. If phone + amount match exactly: APPROVE
+5. If phone not found: WARN
+6. If no match: REJECT
+PARSED TRANSACTION: {{PARSED}}
+PENDING SESSIONS: {{SESSIONS}}$$);
+
+-- Default service tiers
+INSERT INTO service_tiers (name, price_mnt, max_tokens, max_images, zurkhai_enabled, seven_step_enabled, description) VALUES
+('Үнэ харьцуулах', 2900, 2000, 2, false, false, 'Зах зээлийн үнийн харьцуулалт'),
+('Мэргэжлийн зөвлөгөө', 4900, 3000, 3, false, true, 'Мэргэжлийн зөвлөхийн бүрэн зөвлөгөө'),
+('Аз таарулалт', 7900, 4000, 5, true, true, 'Стандарт зурхай + зөвлөгөө'),
+('Бүрэн баталгаажсан тайлан', 14900, 6000, 8, false, true, 'Бүрэн шалгасан баталгаатай тайлан'),
+('Бүрэн тайлан + гүнзгий зурхай', 24900, 8000, 12, true, true, 'Гурван жилийн гүнзгий зурхай + бүрэн тайлан');
