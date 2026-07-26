@@ -212,9 +212,9 @@ PARSED TRANSACTION: {{PARSED}}
 PENDING SESSIONS: {{SESSIONS}}$$);
 
 -- Default service tiers
-INSERT INTO service_tiers (name, price_mnt, max_tokens, max_images, zurkhai_enabled, seven_step_enabled, description) VALUES
-('Үнэ харьцуулах', 2900, 2000, 2, false, false, 'Зах зээлийн үнийн харьцуулалт'),
-('Мэргэжлийн зөвлөгөө', 4900, 3000, 3, false, true, 'Мэргэжлийн зөвлөхийн бүрэн зөвлөгөө'),
-('Аз таарулалт', 7900, 4000, 5, true, true, 'Стандарт зурхай + зөвлөгөө'),
-('Бүрэн баталгаажсан тайлан', 14900, 6000, 8, false, true, 'Бүрэн шалгасан баталгаатай тайлан'),
-('Бүрэн тайлан + гүнзгий зурхай', 24900, 8000, 12, true, true, 'Гурван жилийн гүнзгий зурхай + бүрэн тайлан');
+INSERT INTO service_tiers (tier, tier_name, price, max_tokens, max_images, enable_zurkhai, enable_7step_service, description) VALUES
+(0, 'Үнэ харьцуулах', 2900, 2000, 2, false, false, 'Зах зээлийн үнийн харьцуулалт'),
+(1, 'Мэргэжлийн зөвлөгөө', 4900, 3000, 3, false, true, 'Мэргэжлийн зөвлөхийн бүрэн зөвлөгөө'),
+(2, 'Аз таарулалт', 7900, 4000, 5, true, true, 'Стандарт зурхай + зөвлөгөө'),
+(3, 'Бүрэн баталгаажсан тайлан', 14900, 6000, 8, false, true, 'Бүрэн шалгасан баталгаатай тайлан'),
+(4, 'Бүрэн тайлан + гүнзгий зурхай', 24900, 8000, 12, true, true, 'Гурван жилийн гүнзгий зурхай + бүрэн тайлан');

@@ -15,7 +15,7 @@ router.get('/', requireAdmin, async (req, res) => {
 // Get audit logs
 router.get('/audit', requireAdmin, async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM prompt_audit_logs ORDER BY created_at DESC LIMIT 100');
+    const result = await db.query('SELECT * FROM prompt_audit_logs ORDER BY edited_at DESC LIMIT 100');
     res.json(result.rows);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
