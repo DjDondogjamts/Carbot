@@ -1,0 +1,7 @@
+node_modules
+.env
+*.log
+npm-debug.log*
+assets/qr_khanbank.png
+.DS_Store
+.vscode
