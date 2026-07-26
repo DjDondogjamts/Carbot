@@ -17,9 +17,13 @@ const payment = require('./payment/khanbank');
 const bi = require('./ai/businessAnalyst');
 
 const app = express();
+// Trust Railway proxy for rate limiting
+app.set('trust proxy', 1);
 app.use(bp.json({ limit: '50mb' }));
 app.use(bp.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/assets', express.static(path.join(__dirname, '..', 'assets')));
+// Serve admin static files
+app.use('/admin', express.static(path.join(__dirname, 'admin')));
 
 // Rate limiting
 app.use('/api/', rateLimit({ windowMs: 60000, max: 100 }));
