@@ -1,9 +1,8 @@
-const config = require('../config/global');
-
-async function requireAdmin(req, res, next) {
-  const cfg = await config.loadDbConfig();
-  const key = req.header('X-Admin-Key') || req.query.key;
-  if (key !== cfg.adminApiKey) {
+// Simple admin auth, no dependencies to avoid circular import errors
+function requireAdmin(req, res, next) {
+  const providedKey = req.header('X-Admin-Key') || req.query.key;
+  const expectedKey = process.env.ADMIN_API_KEY;
+  if (!providedKey || providedKey !== expectedKey) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   next();
