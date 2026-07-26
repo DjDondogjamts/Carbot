@@ -4,22 +4,20 @@ const db = require('../config/db');
 const prompts = require('../config/prompts');
 const { requireAdmin } = require('./middleware');
 
-router.use(requireAdmin);
-
 // Get all prompts
-router.get('/', async (req, res) => {
+router.get('/', requireAdmin, async (req, res) => {
   const result = await db.query('SELECT id, category, tier, prompt_text, updated_at FROM service_prompts ORDER BY category, tier');
   res.json(result.rows);
 });
 
 // Get audit logs
-router.get('/audit', async (req, res) => {
+router.get('/audit', requireAdmin, async (req, res) => {
   const result = await db.query('SELECT * FROM prompt_audit_logs ORDER BY created_at DESC LIMIT 100');
   res.json(result.rows);
 });
 
 // Update prompt
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireAdmin, async (req, res) => {
   const { id } = req.params;
   const { prompt_text } = req.body;
   if (!prompt_text || typeof prompt_text !== 'string') return res.status(400).json({ error: 'prompt_text required' });
